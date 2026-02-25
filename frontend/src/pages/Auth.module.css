@@ -1,0 +1,311 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+.authBg {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    background: url('/login-bg.png') no-repeat center center;
+    background-size: cover;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.authBg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: linear-gradient(to right, rgba(10, 15, 30, 0.4) 0%, rgba(10, 15, 30, 0.85) 100%);
+}
+
+.container {
+    background: rgba(17, 24, 39, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 30px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    width: 768px;
+    max-width: 90%;
+    min-height: 480px;
+    z-index: 1;
+}
+
+.title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.container p {
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.3px;
+    margin: 20px 0;
+    color: #e2e8f0;
+}
+
+.forgotPass {
+    color: #94a3b8;
+    font-size: 13px;
+    text-decoration: none;
+    margin: 15px 0 10px;
+}
+
+.forgotPass:hover {
+    text-decoration: underline;
+    color: #cbd5e1;
+}
+
+.btnPrimary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    font-size: 12px;
+    padding: 10px 45px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35);
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btnPrimary:hover:not(:disabled) {
+    box-shadow: 0 6px 28px rgba(59, 130, 246, 0.5);
+    transform: translateY(-1px);
+}
+
+.btnPrimary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.btnPrimary.hidden {
+    background: transparent;
+    border-color: #fff;
+    box-shadow: none;
+}
+
+.btnPrimary.hidden:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 40px;
+    height: 100%;
+}
+
+.form input {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    margin: 8px 0;
+    padding: 12px 15px;
+    font-size: 13px;
+    border-radius: 8px;
+    width: 100%;
+    outline: none;
+    color: #f1f5f9;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+}
+
+.form input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.form input::placeholder {
+    color: #94a3b8;
+}
+
+.formContainer {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: all 0.6s ease-in-out;
+}
+
+.signIn {
+    left: 0;
+    width: 50%;
+    z-index: 2;
+    opacity: 1;
+    transition: all 0.6s ease-in-out;
+}
+
+.container.active .signIn {
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.signUp {
+    left: 0;
+    width: 50%;
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: all 0.6s ease-in-out;
+}
+
+.container.active .signUp {
+    transform: translateX(100%);
+    opacity: 1;
+    z-index: 5;
+    animation: move 0.6s;
+    pointer-events: auto;
+}
+
+@keyframes move {
+
+    0%,
+    49.99% {
+        opacity: 0;
+        z-index: 1;
+    }
+
+    50%,
+    100% {
+        opacity: 1;
+        z-index: 5;
+    }
+}
+
+.toggleContainer {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    transition: all 0.6s ease-in-out;
+    border-radius: 150px 0 0 100px;
+    z-index: 1000;
+}
+
+.container.active .toggleContainer {
+    transform: translateX(-100%);
+    border-radius: 0 150px 100px 0;
+}
+
+.toggle {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    position: relative;
+    left: -100%;
+    height: 100%;
+    width: 200%;
+    transform: translateX(0);
+    transition: all 0.6s ease-in-out;
+}
+
+.container.active .toggle {
+    transform: translateX(50%);
+}
+
+.togglePanel {
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 30px;
+    text-align: center;
+    top: 0;
+    transform: translateX(0);
+    transition: all 0.6s ease-in-out;
+}
+
+.toggleLeft {
+    transform: translateX(-200%);
+}
+
+.container.active .toggleLeft {
+    transform: translateX(0);
+}
+
+.toggleRight {
+    right: 0;
+    transform: translateX(0);
+}
+
+.container.active .toggleRight {
+    transform: translateX(200%);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+.logoIcon {
+    font-size: 1.5rem;
+}
+
+.logoText {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #3b82f6, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.error {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    width: 100%;
+    text-align: center;
+}
+
+.success {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #34d399;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    width: 100%;
+    text-align: center;
+}
+/* In your CSS module */
+.logoIcon {
+  display: inline-block;
+  width: 40px;  /* Adjust size as needed */
+  height: 40px;
+  
+  /* Direct link to the transparent animated sticker */
+  background-image: url('https://media.tenor.com/F_v1YOn8U_AAAAAj/btc-bitcoin.gif');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  
+  /* Optional: Adds a subtle 'pop' to the sticker */
+  filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1));
+}

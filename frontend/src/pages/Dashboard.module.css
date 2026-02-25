@@ -1,0 +1,391 @@
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1100px) {
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.statCard {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.4rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.statCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.statCard:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.statCard:hover::before {
+    opacity: 1;
+}
+
+.statIcon {
+    font-size: 2rem;
+}
+
+.statLabel {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.2rem;
+}
+
+.statValue {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.positive {
+    color: #10b981 !important;
+}
+
+.negative {
+    color: #ef4444 !important;
+}
+
+.neutral {
+    color: #94a3b8 !important;
+}
+
+/* Main Grid */
+.mainGrid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1000px) {
+    .mainGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+}
+
+.card:hover {
+    border-color: rgba(59, 130, 246, 0.15);
+}
+
+.chartCard {
+    min-height: 360px;
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cardHeader h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.cardBody {
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+/* Period Tabs */
+.periodTabs {
+    display: flex;
+    gap: 0.3rem;
+    background: var(--nav-hover);
+    padding: 3px;
+    border-radius: 8px;
+}
+
+.periodBtn {
+    padding: 0.35rem 0.85rem;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.periodBtn:hover {
+    color: var(--text-secondary);
+}
+
+.periodActive {
+    background: #3b82f6;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Refresh btn */
+.refreshBtn {
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.refreshBtn:hover {
+    color: var(--text-primary);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+/* Holdings */
+.holdingRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    transition: all 0.25s;
+}
+
+.holdingRow:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(59, 130, 246, 0.2);
+    transform: translateX(3px);
+}
+
+.holdingLeft {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.holdingSymbolWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.hSymbol {
+    font-weight: 700;
+    color: #3b82f6;
+    font-size: 0.95rem;
+}
+
+.hQty {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+}
+
+.sparkWrap {
+    display: flex;
+    align-items: center;
+}
+
+.holdingRight {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
+}
+
+.holdingPrice {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+/* Transactions */
+.txRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+.txRow:hover {
+    background: var(--nav-hover);
+}
+
+.txBadge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.buy {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.sell {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.txSymbol {
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 55px;
+}
+
+.txInfo {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    flex: 1;
+}
+
+.txPrice {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.txDate {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+}
+
+/* Fear & Greed Gauge */
+.gaugeCard {
+    margin-top: 1rem;
+    padding: 1.2rem;
+    background: var(--nav-hover);
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.gaugeLabel {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.8rem;
+}
+
+.gauge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.gaugeArc {
+    width: 120px;
+    height: 60px;
+    background: conic-gradient(from 180deg at 50% 100%,
+            #ef4444 0%,
+            #f59e0b 25%,
+            #10b981 50%);
+    border-radius: 60px 60px 0 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.gaugeArc::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 40px;
+    background: var(--card-bg);
+    border-radius: 40px 40px 0 0;
+}
+
+.gaugeNeedle {
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    width: 3px;
+    height: 50px;
+    background: linear-gradient(to top, #f1f5f9, transparent);
+    border-radius: 2px;
+    transform-origin: bottom center;
+    z-index: 2;
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gaugeText {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #f59e0b;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Shimmer */
+.shimmer {
+    height: 120px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.07) 50%, rgba(255, 255, 255, 0.03) 75%);
+    background-size: 200% 100%;
+    border-radius: 8px;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}

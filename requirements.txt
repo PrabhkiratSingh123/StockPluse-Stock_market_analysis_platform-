@@ -1,0 +1,39 @@
+# ── Core Django ──────────────────────────────────────────────────────────────
+django
+django-environ              # Used in settings.py: import environ
+django-cors-headers
+djangorestframework
+djangorestframework-simplejwt
+drf-yasg
+
+# ── Database / Cache ──────────────────────────────────────────────────────────
+django-redis                # Used in settings.py when REDIS_URL is set
+sqlparse
+asgiref
+
+# ── Finance / Data ───────────────────────────────────────────────────────────
+yfinance
+pandas
+numpy
+requests
+lxml
+beautifulsoup4
+soupsieve
+frozendict
+multitasking
+websockets
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+pyyaml
+certifi
+charset-normalizer
+idna
+urllib3
+typing-extensions
+tzdata
+uritemplate
+cffi
+pycparser
+python-dateutil
+six
+pyjwt
