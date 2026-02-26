@@ -191,3 +191,8 @@ whitenoise
 gunicorn
 
 django-environ
+
+django-cors-headers
+drf-yasg
+djangorestframework-simplejwt
+django-redis
