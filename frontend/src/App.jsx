@@ -8,6 +8,8 @@ import Market from './pages/Market';
 import Portfolio from './pages/Portfolio';
 import Watchlist from './pages/Watchlist';
 import Transactions from './pages/Transactions';
+import Profile from './pages/Profile';
+import Wallet from './pages/Wallet';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -25,6 +27,8 @@ function AppRoutes() {
       <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
       <Route path="/watchlist" element={<ProtectedRoute><Watchlist /></ProtectedRoute>} />
       <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

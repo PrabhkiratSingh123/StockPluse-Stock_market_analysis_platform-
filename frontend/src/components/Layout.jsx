@@ -10,6 +10,8 @@ const NAV_ITEMS = [
     { to: '/portfolio', icon: '💼', label: 'Portfolio' },
     { to: '/watchlist', icon: '👁️', label: 'Watchlist' },
     { to: '/transactions', icon: '📋', label: 'Transactions' },
+    { to: '/wallet', icon: '💰', label: 'Purse' },
+    { to: '/profile', icon: '👤', label: 'Profile' },
 ];
 
 export default function Layout({ children, pageTitle }) {

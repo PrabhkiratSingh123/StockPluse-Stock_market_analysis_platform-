@@ -8,7 +8,10 @@ from .services.indicator_service import IndicatorService
 from .services.ml_service import MLService
 from .services.analytics_service import AnalyticsService
 from portfolio.models import Portfolio, Transaction
+from users.models import Wallet, WalletTransaction
 from django.db import transaction
+from decimal import Decimal
+import uuid
 
 class TradingViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
@@ -123,8 +126,11 @@ class TradingViewSet(viewsets.ViewSet):
             return Response({"error": "Could not fetch live price"}, status=400)
             
         price = live_data['price']
+        total_value = Decimal(str(price)) * Decimal(str(quantity))
 
         with transaction.atomic():
+            wallet, _ = Wallet.objects.get_or_create(user=request.user)
+            
             # Create Order record
             order = Order.objects.create(
                 user=request.user,
@@ -137,10 +143,28 @@ class TradingViewSet(viewsets.ViewSet):
 
             # Update Portfolio & Transactions
             if order_type == 'BUY':
+                if wallet.balance < total_value:
+                    order.status = 'FAILED'
+                    order.save()
+                    return Response({"error": f"Insufficient wallet balance. Need ${total_value}, have ${wallet.balance}"}, status=400)
+                
+                wallet.balance -= total_value
+                wallet.save()
+
+                # Log transaction
+                WalletTransaction.objects.create(
+                    wallet=wallet,
+                    transaction_type='TRADE_BUY',
+                    amount=total_value,
+                    description=f"Bought {quantity} shares of {symbol}",
+                    reference_id=f"TRD-{uuid.uuid4().hex[:12].upper()}"
+                )
+
                 portfolio_item, _ = Portfolio.objects.get_or_create(user=request.user, stock_symbol=symbol)
-                total_cost = (portfolio_item.quantity * portfolio_item.average_buy_price) + (quantity * price)
+                current_total_cost = Decimal(str(portfolio_item.quantity)) * Decimal(str(portfolio_item.average_buy_price))
+                new_total_cost = current_total_cost + total_value
                 portfolio_item.quantity += quantity
-                portfolio_item.average_buy_price = total_cost / portfolio_item.quantity
+                portfolio_item.average_buy_price = float(new_total_cost / Decimal(str(portfolio_item.quantity)))
                 portfolio_item.save()
             else:
                 try:
@@ -148,9 +172,24 @@ class TradingViewSet(viewsets.ViewSet):
                     if portfolio_item.quantity < quantity:
                         order.status = 'FAILED'
                         order.save()
-                        return Response({"error": "Insufficient quantity"}, status=400)
+                        return Response({"error": "Insufficient shares in portfolio"}, status=400)
+                    
                     portfolio_item.quantity -= quantity
                     portfolio_item.save()
+
+                    # Add money back to wallet
+                    wallet.balance += total_value
+                    wallet.save()
+
+                    # Log transaction
+                    WalletTransaction.objects.create(
+                        wallet=wallet,
+                        transaction_type='TRADE_SELL',
+                        amount=total_value,
+                        description=f"Sold {quantity} shares of {symbol}",
+                        reference_id=f"TRD-{uuid.uuid4().hex[:12].upper()}"
+                    )
+
                 except Portfolio.DoesNotExist:
                     order.status = 'FAILED'
                     order.save()

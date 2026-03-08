@@ -92,3 +92,86 @@ class LogoutView(APIView):
             return Response({"detail": "Successfully logged out."}, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response({"detail": "Token is invalid or expired."}, status=status.HTTP_400_BAD_REQUEST)
+
+from .models import UserProfile, Wallet, PaymentMethod, WalletTransaction
+from .serializers import UserProfileSerializer, WalletSerializer, PaymentMethodSerializer, WalletTransactionSerializer
+from rest_framework import viewsets
+import uuid
+import decimal
+
+class ProfileView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserProfileSerializer
+
+    def get_object(self):
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
+        return profile
+
+class WalletView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        wallet, _ = Wallet.objects.get_or_create(user=request.user)
+        return Response(WalletSerializer(wallet).data)
+
+    def post(self, request):
+        """Used to credit or debit the purse via mock payment."""
+        action_type = request.data.get('action') # 'CREDIT' or 'DEBIT'
+        amount_val = request.data.get('amount', 0)
+        
+        try:
+            amount = decimal.Decimal(str(amount_val))
+        except:
+            return Response({"error": "Invalid amount"}, status=400)
+
+        if amount <= 0:
+            return Response({"error": "Positive amount required"}, status=400)
+
+        wallet, _ = Wallet.objects.get_or_create(user=request.user)
+        ref_id = f"PAY-{uuid.uuid4().hex[:12].upper()}"
+        
+        if action_type == 'CREDIT':
+            wallet.balance += amount
+            wallet.save()
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                transaction_type='CREDIT',
+                amount=amount,
+                description=f"Funded via {request.data.get('method', 'UPI')}",
+                reference_id=ref_id
+            )
+            return Response({"status": f"Successfully credited ${amount}", "balance": wallet.balance, "ref": ref_id})
+        
+        elif action_type == 'DEBIT':
+            if wallet.balance < amount:
+                return Response({"error": "Insufficient balance in purse"}, status=400)
+            wallet.balance -= amount
+            wallet.save()
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                transaction_type='DEBIT',
+                amount=amount,
+                description="Withdrawn to Bank",
+                reference_id=ref_id
+            )
+            return Response({"status": f"Successfully debited ${amount}", "balance": wallet.balance, "ref": ref_id})
+        
+        return Response({"error": "Invalid action"}, status=400)
+
+class WalletHistoryView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = WalletTransactionSerializer
+
+    def get_queryset(self):
+        wallet, _ = Wallet.objects.get_or_create(user=self.request.user)
+        return wallet.transactions.all()
+
+class PaymentMethodViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PaymentMethodSerializer
+
+    def get_queryset(self):
+        return PaymentMethod.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

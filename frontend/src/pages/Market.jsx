@@ -34,6 +34,9 @@ export default function Market() {
     const [orderOk, setOrderOk] = useState('');
     const [orderLoading, setOrderLoading] = useState(false);
 
+    // Wallet balance
+    const [walletBalance, setWalletBalance] = useState(null);
+
     // Indicators state
     const [indData, setIndData] = useState(null);
     const [indLoading, setIndLoading] = useState(false);
@@ -51,11 +54,12 @@ export default function Market() {
         setChartLoading(true); setIndData(null); setPredData(null);
         const sym = liveSymbol.trim().toUpperCase();
         try {
-            const [liveRes, chartRes, indRes, predRes] = await Promise.allSettled([
+            const [liveRes, chartRes, indRes, predRes, walletRes] = await Promise.allSettled([
                 api.get(`/trading/live/${sym}/`),
                 api.get(`/trading/chart/${sym}/?period=${chartPeriod}`),
                 api.get(`/trading/indicators/${sym}/`),
                 api.get(`/trading/predict/${sym}/`),
+                api.get('/users/wallet/'),
             ]);
 
             if (liveRes.status === 'fulfilled' && liveRes.value.data?.price !== undefined) {
@@ -68,6 +72,7 @@ export default function Market() {
             if (chartRes.status === 'fulfilled') setChartData(chartRes.value.data);
             if (indRes.status === 'fulfilled' && !indRes.value.data?.error) setIndData(indRes.value.data);
             if (predRes.status === 'fulfilled' && !predRes.value.data?.error) setPredData(predRes.value.data);
+            if (walletRes.status === 'fulfilled') setWalletBalance(walletRes.value.data.balance);
         } catch {
             setLiveErr('Network error. Is Django running?');
         }
@@ -91,7 +96,13 @@ export default function Market() {
         setOrderLoading(true);
         try {
             const { data } = await api.post('/trading/order/', { symbol: orderSymbol.toUpperCase(), quantity: Number(orderQty), type: orderType });
-            if (data.status) { setOrderOk(`✅ ${data.status} — Price: $${fmt(data.executed_price)}`); setOrderQty(''); }
+            if (data.status) {
+                setOrderOk(`✅ ${data.status} — Price: $${fmt(data.executed_price)}`);
+                setOrderQty('');
+                // Refresh wallet balance after trade
+                const wRes = await api.get('/users/wallet/');
+                setWalletBalance(wRes.data.balance);
+            }
             else setOrderErr(data.error || 'Order failed.');
         } catch (e) { setOrderErr(e.response?.data?.error || 'Order failed.'); }
         setOrderLoading(false);
@@ -281,6 +292,13 @@ export default function Market() {
                                     <button className={`${styles.btnBuy} ${orderType === 'BUY' ? '' : styles.dimmed}`} onClick={() => setOrderType('BUY')}>BUY</button>
                                     <button className={`${styles.btnSell} ${orderType === 'SELL' ? '' : styles.dimmed}`} onClick={() => setOrderType('SELL')}>SELL</button>
                                 </div>
+
+                                {walletBalance !== null && (
+                                    <div className={styles.walletNote}>
+                                        Available Purse Balance: <b>${fmt(walletBalance)}</b>
+                                    </div>
+                                )}
+
                                 {orderErr && <div className={styles.error}>{orderErr}</div>}
                                 {orderOk && <div className={styles.success}>{orderOk}</div>}
                                 <button className={styles.btnExecute} onClick={placeOrder} disabled={orderLoading}>

@@ -1,0 +1,383 @@
+.container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.balanceCard {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    padding: 2.5rem;
+    border-radius: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
+    margin-bottom: 2rem;
+}
+
+.balanceInfo .label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    opacity: 0.8;
+    letter-spacing: 0.1em;
+}
+
+.balanceInfo .value {
+    font-size: 3rem;
+    font-weight: 800;
+    margin: 0.5rem 0 0;
+}
+
+.purseIcon {
+    font-size: 4rem;
+    opacity: 0.3;
+}
+
+.mainGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2rem;
+}
+
+.card h3 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.hint {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+}
+
+.inputGroup {
+    margin-bottom: 1.5rem;
+}
+
+.inputGroup label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.inputGroup input,
+.inputGroup select {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: inherit;
+}
+
+.inputGroup select option {
+    background: #111827;
+}
+
+.actionBtns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.creditBtn,
+.debitBtn {
+    padding: 1rem;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.creditBtn {
+    background: #10b981;
+    color: white;
+}
+
+.debitBtn {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.creditBtn:hover {
+    background: #059669;
+    transform: translateY(-2px);
+}
+
+.debitBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+/* History Section */
+.historyCard {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2rem;
+}
+
+.historyList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.historyRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    transition: transform 0.2s;
+}
+
+.historyRow:hover {
+    transform: translateX(5px);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.txMain {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.txTypeIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.txTypeIcon.CREDIT {
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.txTypeIcon.DEBIT {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.txTypeIcon.TRADE_BUY {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+.txTypeIcon.TRADE_SELL {
+    background: rgba(245, 158, 11, 0.15);
+}
+
+.txInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.txDesc {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.txDate {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.txAmount {
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.plus {
+    color: #10b981;
+}
+
+.minus {
+    color: #ef4444;
+}
+
+/* Modal Styles */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal {
+    background: #111827;
+    width: 100%;
+    max-width: 450px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+    animation: modalIn 0.3s ease-out;
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modalHeader {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.closeX {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    opacity: 0.5;
+}
+
+.modalBody {
+    padding: 2rem;
+}
+
+.mockMerchant {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.mockMerchant img {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.mockMerchant h4 {
+    margin: 0;
+    color: white;
+}
+
+.mockMerchant p {
+    margin: 0.2rem 0 0;
+    font-size: 0.7rem;
+    color: #64748b;
+}
+
+.amountDisplay {
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    margin-bottom: 2rem;
+}
+
+.amountDisplay span {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.amountDisplay h2 {
+    margin: 0.5rem 0 0;
+    color: #3b82f6;
+    font-size: 2.5rem;
+    font-weight: 800;
+}
+
+.paymentMethods {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+}
+
+.methodOption {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.methodOption:has(input:checked) {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.payNowBtn {
+    width: 100%;
+    padding: 1.2rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.payNowBtn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.secureText {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #475569;
+    margin-top: 1rem;
+}
+
+@media (max-width: 800px) {
+    .mainGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .balanceCard .value {
+        font-size: 2rem;
+    }
+}

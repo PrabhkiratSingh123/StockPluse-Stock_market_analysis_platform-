@@ -422,6 +422,21 @@
     cursor: not-allowed;
 }
 
+.walletNote {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin: 0.5rem 0;
+}
+
+.walletNote b {
+    color: #f59e0b;
+    float: right;
+}
+
 /* ── Alerts ────────────────────────────────────────────────── */
 .error {
     background: rgba(239, 68, 68, 0.08);
