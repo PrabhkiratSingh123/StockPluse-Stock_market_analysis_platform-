@@ -8,6 +8,9 @@ from trading.services import get_live_price
 from trading.services.market_service import MarketService
 from django.db import transaction
 from rest_framework.pagination import PageNumberPagination
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
@@ -111,14 +114,127 @@ class PortfolioViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
+    def portfolio_performance(self, request):
+        """
+        Returns aggregated portfolio value over time for 1D / 1W / 1M / 1Y.
+        Maps UI period labels → yfinance (period, interval) pairs.
+        """
+        import yfinance as yf
+        import pandas as pd
+        from django.core.cache import cache
+
+        PERIOD_MAP = {
+            '1D':  ('5d',  '15m'),   # intraday 15-min bars for the last 5 days (yf needs ≥5d for intraday)
+            '1W':  ('5d',  '1h'),
+            '1M':  ('1mo', '1d'),
+            '1Y':  ('1y',  '1d'),
+        }
+
+        ui_period = request.query_params.get('period', '1M').upper()
+        yf_period, interval = PERIOD_MAP.get(ui_period, ('1mo', '1d'))
+
+        holdings = list(self.get_queryset().filter(quantity__gt=0))
+        if not holdings:
+            return Response({'labels': [], 'values': []})
+
+        cache_key = f"portperf_{request.user.id}_{ui_period}"
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
+
+        # Fetch historical close prices for every holding symbol
+        symbols = [h.stock_symbol for h in holdings]
+        qty_map = {h.stock_symbol: h.quantity for h in holdings}
+
+        try:
+            # Download all at once for efficiency
+            raw = yf.download(
+                symbols if len(symbols) > 1 else symbols[0],
+                period=yf_period,
+                interval=interval,
+                progress=False,
+                auto_adjust=True,
+            )
+
+            if raw.empty:
+                return Response({'labels': [], 'values': []})
+
+            # Normalise to a DataFrame of close prices per symbol
+            if len(symbols) == 1:
+                close_df = raw[['Close']].rename(columns={'Close': symbols[0]})
+            else:
+                # Multi-ticker download → MultiIndex columns; grab 'Close' level
+                if isinstance(raw.columns, pd.MultiIndex):
+                    close_df = raw['Close']
+                else:
+                    close_df = raw[['Close']].rename(columns={'Close': symbols[0]})
+
+            # Forward-fill gaps (weekends / holidays)
+            close_df = close_df.ffill().dropna(how='all')
+
+            # For 1D: keep only today's bars
+            if ui_period == '1D':
+                today = pd.Timestamp.now(tz='UTC').normalize()
+                mask = close_df.index.normalize() >= today
+                if mask.any():
+                    close_df = close_df[mask]
+                else:
+                    # Fallback: last calendar day in data
+                    last_day = close_df.index.normalize().max()
+                    close_df = close_df[close_df.index.normalize() == last_day]
+
+            # Aggregate: sum(qty * close) per timestamp
+            portfolio_values = pd.Series(0.0, index=close_df.index)
+            for sym, qty in qty_map.items():
+                if sym in close_df.columns:
+                    portfolio_values += close_df[sym].fillna(0) * qty
+                elif len(symbols) == 1 and symbols[0] == sym:
+                    portfolio_values += close_df.iloc[:, 0].fillna(0) * qty
+
+            portfolio_values = portfolio_values[portfolio_values > 0]
+
+            # Build response: Always use millisecond timestamps for reliability
+            labels = [int(ts.timestamp() * 1000) for ts in portfolio_values.index]
+
+            result = {
+                'labels': labels,
+                'values': [round(float(v), 2) for v in portfolio_values.tolist()],
+                'period': ui_period,
+            }
+            cache.set(cache_key, result, 120)  # 2-min cache
+            return Response(result)
+
+        except Exception as e:
+            return Response({'labels': [], 'values': [], 'error': str(e)})
+
+    @action(detail=False, methods=['get'])
     def analytics(self, request):
-        holdings = self.get_queryset()
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        holdings = list(self.get_queryset())
         total_investment = 0
         total_current_value = 0
         stock_details = []
 
-        for item in holdings:
-            live_data = MarketService.get_live_data(item.stock_symbol)
+        def fetch_stock_data(item):
+            live_data = MarketService.get_price_only(item.stock_symbol)
+            sparkline = MarketService.get_sparkline(item.stock_symbol, period="1mo")
+            branding = MarketService.get_branding(item.stock_symbol)
+            return item, live_data, sparkline, branding
+
+        results = []
+        with ThreadPoolExecutor(max_workers=min(len(holdings), 8)) as executor:
+            futures = {executor.submit(fetch_stock_data, item): item for item in holdings}
+            for future in as_completed(futures):
+                try:
+                    results.append(future.result())
+                except Exception:
+                    pass
+
+        # Preserve original order
+        symbol_order = {item.stock_symbol: i for i, item in enumerate(holdings)}
+        results.sort(key=lambda r: symbol_order.get(r[0].stock_symbol, 999))
+
+        for item, live_data, sparkline, branding in results:
             live_price = live_data['price'] if live_data else item.average_buy_price
             investment = item.quantity * item.average_buy_price
             current_value = item.quantity * live_price
@@ -127,12 +243,6 @@ class PortfolioViewSet(viewsets.ModelViewSet):
 
             total_investment += investment
             total_current_value += current_value
-
-            # Get sparkline data for each holding
-            sparkline = MarketService.get_sparkline(item.stock_symbol, period="1mo")
-
-            # Get branding (logo + long name), cached 24h
-            branding = MarketService.get_branding(item.stock_symbol)
 
             stock_details.append({
                 "symbol": item.stock_symbol,
@@ -173,8 +283,22 @@ class PortfolioViewSet(viewsets.ModelViewSet):
                 "total_current_value": round(total_current_value, 2),
                 "total_p_l": round(total_p_l, 2),
                 "total_p_l_pct": round(total_p_l_pct, 2),
-                "stock_count": holdings.count()
+                "stock_count": len(holdings)
             },
             "holdings": stock_details,
             "allocation": allocation,
         })
+
+    @action(detail=False, methods=['get'], url_path=r'(?P<username>[^/.]+)')
+    def user_portfolio(self, request, username=None):
+        try:
+            target_user = User.objects.get(username=username)
+            holdings = Portfolio.objects.filter(user=target_user, quantity__gt=0)
+            stocks_dict = {item.stock_symbol: item.quantity for item in holdings}
+            
+            return Response({
+                "username": target_user.username,
+                "portfolio": stocks_dict
+            })
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)

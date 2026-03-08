@@ -3,9 +3,7 @@ from django.db import models
 from django.contrib.auth.models import BaseUserManager
 
 
-# =========================
-# Custom User Manager
-# =========================
+
 class UserManager(BaseUserManager):
 
     def create_user(self, username, email, password=None, **extra_fields):
@@ -31,9 +29,7 @@ class UserManager(BaseUserManager):
         return self.create_user(username, email, password, **extra_fields)
 
 
-# =========================
-# Custom User Model
-# =========================
+
 class User(AbstractBaseUser, PermissionsMixin):
 
     username = models.CharField(max_length=50, unique=True)

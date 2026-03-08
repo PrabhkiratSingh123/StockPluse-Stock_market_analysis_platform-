@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Layout from '../components/Layout';
 import StockLogo from '../components/StockLogo';
 import api from '../api/axios';
@@ -156,20 +156,25 @@ export default function Watchlist() {
     const [newsLoading, setNewsLoading] = useState(false);
     const { markPageReady } = useTour();
 
+    // Ref so `load` can read selectedSymbol without it being a dep (prevents infinite loop)
+    const selectedSymbolRef = useRef(null);
+    useEffect(() => { selectedSymbolRef.current = selectedSymbol; }, [selectedSymbol]);
+
     const load = useCallback(async () => {
         setLoading(true);
         try {
             const { data } = await api.get('/trading/watchlist/');
             const list = data?.results || (Array.isArray(data) ? data : []);
             setItems(list);
-            if (list.length > 0 && !selectedSymbol) {
+            if (list.length > 0 && !selectedSymbolRef.current) {
                 setSelectedSymbol(list[0].symbol);
             }
             const liveResults = {};
             await Promise.allSettled(
                 list.map(async (item) => {
                     try {
-                        const res = await api.get(`/trading/live/${item.symbol}/`);
+                        // fast=true: skips news/info for speed – just price data
+                        const res = await api.get(`/trading/live/${item.symbol}/?fast=true`);
                         if (res.data?.price !== undefined) liveResults[item.symbol] = res.data;
                     } catch { }
                 })
@@ -177,7 +182,7 @@ export default function Watchlist() {
             setLiveMap(liveResults);
         } catch { }
         setLoading(false);
-    }, [selectedSymbol]);
+    }, []); // ← empty deps, no infinite loop
 
     useEffect(() => { load(); }, [load]);
 
@@ -187,7 +192,18 @@ export default function Watchlist() {
         }
     }, [loading, markPageReady]);
 
-    // ── Fetch live news for selected symbol ──────────────────────────────────
+    // ── Fetch full live data (with company info) for selected symbol ──────────
+    const fetchFullData = useCallback(async (sym) => {
+        if (!sym) return;
+        try {
+            const res = await api.get(`/trading/live/${sym}/`);
+            if (res.data?.price !== undefined) {
+                setLiveMap(prev => ({ ...prev, [sym]: res.data }));
+            }
+        } catch { }
+    }, []);
+
+    // ── Fetch news for selected symbol ────────────────────────────────────────
     const fetchNews = useCallback(async (sym) => {
         if (!sym) return;
         setNewsLoading(true);
@@ -200,10 +216,13 @@ export default function Watchlist() {
         setNewsLoading(false);
     }, []);
 
-    // Fetch news whenever selected symbol changes
+    // Fetch full data + news whenever selected symbol changes
     useEffect(() => {
-        if (selectedSymbol) fetchNews(selectedSymbol);
-    }, [selectedSymbol, fetchNews]);
+        if (selectedSymbol) {
+            fetchFullData(selectedSymbol);
+            fetchNews(selectedSymbol);
+        }
+    }, [selectedSymbol, fetchFullData, fetchNews]);
 
     // Auto-refresh news every 3 minutes
     useEffect(() => {

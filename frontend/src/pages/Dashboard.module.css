@@ -42,13 +42,14 @@
     transition: opacity 0.3s;
 }
 
-.statCard:hover {
-    border-color: rgba(59, 130, 246, 0.3);
-    transform: translateY(-3px);
+.statCard:hover, .statCardActive {
+    border-color: rgba(59, 130, 246, 0.4) !important;
+    transform: translateY(-3px) scale(1.01);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(59, 130, 246, 0.05) 100%);
 }
 
-.statCard:hover::before {
+.statCard:hover::before, .statCardActive::before {
     opacity: 1;
 }
 

@@ -15,7 +15,14 @@ class TradingViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], url_path='live/(?P<symbol>[^/.]+)')
     def live_price(self, request, symbol=None):
-        data = MarketService.get_live_data(symbol)
+        # fast=true skips news fetching (used by watchlist sidebar for speed)
+        fast = request.query_params.get('fast', 'false').lower() == 'true'
+        if fast:
+            data = MarketService.get_price_only(symbol)
+            if not data:
+                data = MarketService.get_live_data(symbol, fetch_news=False)
+        else:
+            data = MarketService.get_live_data(symbol, fetch_news=True)
         if not data:
             return Response({"error": "Invalid symbol or data not available"}, status=400)
         return Response(data)

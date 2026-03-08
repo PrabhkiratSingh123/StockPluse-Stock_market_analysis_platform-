@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import Joyride, { STATUS } from 'react-joyride';
 import { useLocation } from 'react-router-dom';
 import { useTheme } from './ThemeContext';
@@ -58,13 +58,13 @@ export function TourProvider({ children }) {
         }
     };
 
-    const markPageReady = () => {
+    const markPageReady = useCallback(() => {
         // Only auto-launch if we have steps for the current page and they haven't seen ANY tour yet
         const hasSeenTour = localStorage.getItem('hasSeenGlobalTour');
         if (!hasSeenTour && currentSteps.length > 0) {
             setTimeout(() => setRun(true), 600);
         }
-    };
+    }, [currentSteps.length]);
 
     const handleJoyrideCallback = (data) => {
         const { status } = data;

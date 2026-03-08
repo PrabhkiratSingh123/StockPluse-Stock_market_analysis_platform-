@@ -96,7 +96,7 @@ def _fetch_rss_news(symbol, max_items=8):
         if len(articles) >= max_items:
             break
         try:
-            resp = requests.get(feed_url, headers=headers, timeout=6)
+            resp = requests.get(feed_url, headers=headers, timeout=3)
             if resp.status_code != 200:
                 continue
 
@@ -176,79 +176,124 @@ class MarketService:
         return result
 
     @staticmethod
-    def get_live_data(symbol):
+    def get_price_only(symbol):
+        """Fast method: only fetches price/OHLC. No ticker.info, no news. Used by analytics."""
         import yfinance as yf
         symbol = symbol.upper()
+        cache_key = f"price_only_{symbol}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+
+        try:
+            ticker = yf.Ticker(symbol)
+            data = ticker.fast_info  # fast_info is much faster than ticker.info
+            price = getattr(data, 'last_price', None) or getattr(data, 'previous_close', None)
+            if not price:
+                # fallback to history
+                hist = ticker.history(period="1d")
+                if hist.empty:
+                    return None
+                row = hist.iloc[-1]
+                price = float(row['Close'])
+                prev = float(hist.iloc[-2]['Close']) if len(hist) > 1 else price
+                change = price - prev
+                change_pct = (change / prev * 100) if prev else 0
+                result = {
+                    "symbol": symbol, "price": round(price, 2),
+                    "change": round(change, 2), "change_pct": round(change_pct, 2),
+                    "volume": int(row['Volume']), "high": round(float(row['High']), 2),
+                    "low": round(float(row['Low']), 2), "open": round(float(row['Open']), 2),
+                    "logo_url": "", "long_name": "", "short_name": "", "news": [],
+                }
+            else:
+                prev_close = getattr(data, 'previous_close', price) or price
+                change = price - prev_close
+                change_pct = (change / prev_close * 100) if prev_close else 0
+                result = {
+                    "symbol": symbol, "price": round(float(price), 2),
+                    "change": round(float(change), 2), "change_pct": round(float(change_pct), 2),
+                    "volume": int(getattr(data, 'three_month_average_volume', 0) or 0),
+                    "high": round(float(getattr(data, 'day_high', price) or price), 2),
+                    "low": round(float(getattr(data, 'day_low', price) or price), 2),
+                    "open": round(float(getattr(data, 'open', price) or price), 2),
+                    "logo_url": "", "long_name": "", "short_name": "", "news": [],
+                }
+            cache.set(cache_key, result, 120)  # 2 min cache
+            return result
+        except Exception:
+            return None
+
+    @staticmethod
+    def get_live_data(symbol, fetch_news=True):
+        import yfinance as yf
+        symbol = symbol.upper()
+        # Always use the same cache key – news is just extra data layered on top
         cache_key = f"live_price_{symbol}"
         cached_data = cache.get(cache_key)
 
         if cached_data:
             return cached_data
 
-        ticker = yf.Ticker(symbol)
-        data = ticker.history(period="1d")
+        try:
+            ticker = yf.Ticker(symbol)
+            data = ticker.history(period="1d")
 
-        if data.empty:
+            if data.empty:
+                return None
+
+            latest = data.iloc[-1]
+            info = ticker.info or {}
+            prev_close = info.get('previousClose', float(latest['Close']))
+            change = float(latest['Close']) - prev_close
+            change_pct = (change / prev_close) * 100 if prev_close else 0
+
+            merged_news = []
+            if fetch_news:
+                yf_news = _parse_yf_news(ticker.news[:8] if ticker.news else [])
+                rss_news = _fetch_rss_news(symbol, max_items=8)
+                seen_titles = set()
+                for article in (yf_news + rss_news):
+                    key = article.get('title', '')[:60].lower().strip()
+                    if key and key not in seen_titles:
+                        seen_titles.add(key)
+                        merged_news.append(article)
+                    if len(merged_news) >= 12:
+                        break
+                merged_news.sort(key=lambda x: x.get('providerPublishTime') or 0, reverse=True)
+
+            result = {
+                "symbol": symbol,
+                "price": round(float(latest['Close']), 2),
+                "change": round(float(change), 2),
+                "change_pct": round(float(change_pct), 2),
+                "volume": int(latest['Volume']),
+                "high": round(float(latest['High']), 2),
+                "low": round(float(latest['Low']), 2),
+                "open": round(float(latest['Open']), 2),
+                "logo_url": info.get('logo_url', ''),
+                "long_name": info.get('longName', ''),
+                "short_name": info.get('shortName', ''),
+                "summary": info.get('longBusinessSummary', ''),
+                "sector": info.get('sector', ''),
+                "industry": info.get('industry', ''),
+                "market_cap": info.get('marketCap'),
+                "pe_ratio": info.get('trailingPE'),
+                "eps": info.get('trailingEps'),
+                "dividend_yield": info.get('dividendYield'),
+                "beta": info.get('beta'),
+                "target_mean_price": info.get('targetMeanPrice'),
+                "target_high_price": info.get('targetHighPrice'),
+                "target_low_price": info.get('targetLowPrice'),
+                "recommendation": info.get('recommendationKey', ''),
+                "number_of_analysts": info.get('numberOfAnalystOpinions'),
+                "news": merged_news,
+            }
+
+            cache.set(cache_key, result, 300)  # 5 min cache
+            return result
+        except Exception:
             return None
-
-        latest = data.iloc[-1]
-        info = ticker.info or {}
-        prev_close = info.get('previousClose', latest['Close'])
-        change = latest['Close'] - prev_close
-        change_pct = (change / prev_close) * 100 if prev_close else 0
-
-        # ── News: yfinance + RSS merged ────────────────────────────────
-        yf_news = _parse_yf_news(ticker.news[:8] if ticker.news else [])
-        rss_news = _fetch_rss_news(symbol, max_items=8)
-
-        # Deduplicate by first ~60 chars of title
-        seen_titles = set()
-        merged_news = []
-        for article in (yf_news + rss_news):
-            key = article.get('title', '')[:60].lower().strip()
-            if key and key not in seen_titles:
-                seen_titles.add(key)
-                merged_news.append(article)
-            if len(merged_news) >= 12:
-                break
-
-        # Sort by publishTime descending
-        merged_news.sort(key=lambda x: x.get('providerPublishTime') or 0, reverse=True)
-
-        result = {
-            "symbol": symbol,
-            "price": round(float(latest['Close']), 2),
-            "change": round(float(change), 2),
-            "change_pct": round(float(change_pct), 2),
-            "volume": int(latest['Volume']),
-            "high": round(float(latest['High']), 2),
-            "low": round(float(latest['Low']), 2),
-            "open": round(float(latest['Open']), 2),
-            # Company branding & Bio
-            "logo_url": info.get('logo_url', ''),
-            "long_name": info.get('longName', ''),
-            "short_name": info.get('shortName', ''),
-            "summary": info.get('longBusinessSummary', ''),
-            "sector": info.get('sector', ''),
-            "industry": info.get('industry', ''),
-            # Fundamental data
-            "market_cap": info.get('marketCap'),
-            "pe_ratio": info.get('trailingPE'),
-            "eps": info.get('trailingEps'),
-            "dividend_yield": info.get('dividendYield'),
-            "beta": info.get('beta'),
-            "target_mean_price": info.get('targetMeanPrice'),
-            "target_high_price": info.get('targetHighPrice'),
-            "target_low_price": info.get('targetLowPrice'),
-            "recommendation": info.get('recommendationKey', ''),
-            "number_of_analysts": info.get('numberOfAnalystOpinions'),
-            # Real-time news (yfinance + RSS merged)
-            "news": merged_news,
-        }
-
-        # Cache live data for 5 minutes
-        cache.set(cache_key, result, 300)
-        return result
 
 
     @staticmethod

@@ -22,6 +22,9 @@ export default function Dashboard() {
     const [txList, setTxList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [perfPeriod, setPerfPeriod] = useState('1M');
+    const [perfData, setPerfData] = useState({ labels: [], values: [] });
+    const [perfLoading, setPerfLoading] = useState(false);
+    const [hoverData, setHoverData] = useState(null); // { value, label, pL, pLPct }
     const { markPageReady } = useTour();
 
     const load = useCallback(async () => {
@@ -47,10 +50,36 @@ export default function Dashboard() {
         }
     }, [loading, markPageReady]);
 
+    // Fetch portfolio performance data whenever period changes
+    const loadPerf = useCallback(async (period) => {
+        setPerfLoading(true);
+        try {
+            const { data } = await api.get(`/portfolio/portfolio_performance/?period=${period}`);
+            setPerfData({
+                labels: data.labels || [],
+                values: data.values || [],
+            });
+        } catch {
+            setPerfData({ labels: [], values: [] });
+        }
+        setPerfLoading(false);
+    }, []);
+
+    useEffect(() => {
+        loadPerf(perfPeriod);
+    }, [perfPeriod, loadPerf]);
+
     const plClass = (v) => v > 0 ? styles.positive : v < 0 ? styles.negative : styles.neutral;
 
-    // Portfolio performance area chart data (uses sparkline from first holding or aggregate)
-    const perfData = holdings.length > 0 ? holdings[0]?.sparkline || [] : [];
+    // Dynamic x-axis label format based on period
+    const xLabelFormatter = (val) => {
+        if (!val) return '';
+        const d = new Date(val);
+        if (perfPeriod === '1D' || perfPeriod === '1W') {
+            return d.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+        return d.toLocaleString('en-US', { month: 'short', day: 'numeric' });
+    };
 
     const areaChartOptions = {
         chart: {
@@ -60,6 +89,25 @@ export default function Dashboard() {
             toolbar: { show: false },
             zoom: { enabled: false },
             sparkline: { enabled: false },
+            animations: { enabled: true, speed: 400 },
+            events: {
+                mouseMove: (event, chartContext, config) => {
+                    const idx = config.dataPointIndex;
+                    if (idx > -1 && perfData.values[idx]) {
+                        const val = perfData.values[idx];
+                        const invested = summary?.total_investment || 0;
+                        const pL = val - invested;
+                        const pLPct = invested > 0 ? (pL / invested * 100) : 0;
+                        setHoverData({
+                            value: val,
+                            label: perfData.labels[idx],
+                            pL,
+                            pLPct
+                        });
+                    }
+                },
+                mouseLeave: () => setHoverData(null),
+            }
         },
         colors: ['#3b82f6'],
         fill: {
@@ -75,9 +123,10 @@ export default function Dashboard() {
                 ]
             }
         },
-        stroke: {
-            curve: 'smooth',
-            width: 2.5,
+        stroke: { curve: 'smooth', width: 2.5 },
+        markers: {
+            size: 0,
+            hover: { size: 5, strokeColors: '#0f172a', strokeWidth: 2, colors: '#3b82f6' }
         },
         grid: {
             borderColor: 'rgba(255,255,255,0.06)',
@@ -85,10 +134,18 @@ export default function Dashboard() {
             xaxis: { lines: { show: false } },
         },
         xaxis: {
-            categories: perfData.map((_, i) => i),
+            type: 'datetime',
+            categories: perfData.labels,
             labels: { show: false },
             axisBorder: { show: false },
             axisTicks: { show: false },
+            crosshairs: {
+                show: true,
+                stroke: { color: '#3b82f6', width: 1.5, dashArray: 4 },
+                alpha: 0.6,
+                tooltip: { enabled: false } // Fix: explicitly disable the black box at the bottom
+            },
+            tooltip: { enabled: false },
         },
         yaxis: {
             labels: {
@@ -98,14 +155,31 @@ export default function Dashboard() {
         },
         tooltip: {
             theme: 'dark',
-            y: { formatter: (v) => `$${fmt(v)}` },
+            shared: true,
+            intersect: false,
+            followCursor: true,
+            x: {
+                show: true,
+                formatter: (v) => {
+                    const d = new Date(v);
+                    if (perfPeriod === '1D' || perfPeriod === '1W') {
+                        return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    }
+                    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                }
+            },
+            y: {
+                formatter: (v) => `$${fmt(v)}`,
+                title: { formatter: () => '' }
+            },
+            marker: { show: false }
         },
         dataLabels: { enabled: false },
     };
 
     const areaChartSeries = [{
         name: 'Portfolio Value',
-        data: perfData,
+        data: perfData.values,
     }];
 
     // Donut chart for asset allocation
@@ -186,10 +260,16 @@ export default function Dashboard() {
             <div className={styles.statsGrid} data-tour="dash-stats">
                 {[
                     { icon: '💰', label: 'Total Invested', value: summary ? `$${fmt(summary.total_investment)}` : '—', accent: '#3b82f6' },
-                    { icon: '📊', label: 'Current Value', value: summary ? `$${fmt(summary.total_current_value)}` : '—', accent: '#8b5cf6' },
+                    {
+                        icon: '📊',
+                        label: hoverData ? `Value on ${xLabelFormatter(hoverData.label)}` : 'Current Value',
+                        value: hoverData ? `$${fmt(hoverData.value)}` : (summary ? `$${fmt(summary.total_current_value)}` : '—'),
+                        accent: '#8b5cf6',
+                        active: !!hoverData
+                    },
                     { icon: '🗂️', label: 'Stocks Held', value: summary ? summary.stock_count : '—', accent: '#f59e0b' },
-                ].map(({ icon, label, value, accent }) => (
-                    <div key={label} className={styles.statCard} style={{ borderTop: `3px solid ${accent}` }}>
+                ].map(({ icon, label, value, accent, active }) => (
+                    <div key={label} className={`${styles.statCard} ${active ? styles.statCardActive : ''}`} style={{ borderTop: `3px solid ${accent}` }}>
                         <span className={styles.statIcon}>{icon}</span>
                         <div>
                             <div className={styles.statLabel}>{label}</div>
@@ -199,12 +279,18 @@ export default function Dashboard() {
                 ))}
 
                 {/* P&L card with colour */}
-                <div className={styles.statCard} style={{ borderTop: `3px solid ${summary && summary.total_p_l >= 0 ? '#10b981' : '#ef4444'}` }}>
+                <div
+                    className={`${styles.statCard} ${hoverData ? styles.statCardActive : ''}`}
+                    style={{ borderTop: `3px solid ${hoverData ? (hoverData.pL >= 0 ? '#10b981' : '#ef4444') : (summary && summary.total_p_l >= 0 ? '#10b981' : '#ef4444')}` }}
+                >
                     <span className={styles.statIcon}>🎯</span>
                     <div>
-                        <div className={styles.statLabel}>Total P&amp;L</div>
-                        <div className={`${styles.statValue} ${summary ? plClass(summary.total_p_l) : ''}`}>
-                            {summary ? `${summary.total_p_l >= 0 ? '+' : ''}$${fmt(summary.total_p_l)} (${summary.total_p_l_pct.toFixed(2)}%)` : '—'}
+                        <div className={styles.statLabel}>{hoverData ? 'Gain on this date' : 'Total P&L'}</div>
+                        <div className={`${styles.statValue} ${hoverData ? plClass(hoverData.pL) : (summary ? plClass(summary.total_p_l) : '')}`}>
+                            {hoverData
+                                ? `${hoverData.pL >= 0 ? '+' : ''}$${fmt(hoverData.pL)} (${hoverData.pLPct.toFixed(2)}%)`
+                                : (summary ? `${summary.total_p_l >= 0 ? '+' : ''}$${fmt(summary.total_p_l)} (${summary.total_p_l_pct.toFixed(2)}%)` : '—')
+                            }
                         </div>
                     </div>
                 </div>
@@ -216,7 +302,7 @@ export default function Dashboard() {
                     <div className={styles.cardHeader}>
                         <h3>Portfolio Performance</h3>
                         <div className={styles.periodTabs}>
-                            {['1D', '1W', 'M', '1Y'].map(p => (
+                            {['1D', '1W', '1M', '1Y'].map(p => (
                                 <button key={p}
                                     className={`${styles.periodBtn} ${perfPeriod === p ? styles.periodActive : ''}`}
                                     onClick={() => setPerfPeriod(p)}
@@ -225,7 +311,9 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className={styles.cardBody}>
-                        {perfData.length > 0 ? (
+                        {perfLoading ? (
+                            <div className={styles.shimmer} style={{ height: 280 }} />
+                        ) : perfData.values.length > 0 ? (
                             <Chart options={areaChartOptions} series={areaChartSeries} type="area" height={280} />
                         ) : (
                             <Empty icon="📈" text="Add stocks to see performance" />

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Layout from '../components/Layout';
 import StockLogo from '../components/StockLogo';
 import api from '../api/axios';
@@ -21,6 +21,12 @@ export default function Portfolio() {
     const [chartLoading, setChartLoading] = useState(false);
     const [chartPeriod, setChartPeriod] = useState('3mo');
 
+    // Refs so callbacks can read latest values without being deps (avoids infinite loops)
+    const selectedSymbolRef = useRef('');
+    const chartPeriodRef = useRef('3mo');
+    useEffect(() => { selectedSymbolRef.current = selectedSymbol; }, [selectedSymbol]);
+    useEffect(() => { chartPeriodRef.current = chartPeriod; }, [chartPeriod]);
+
     // Order state
     const [orderSymbol, setOrderSymbol] = useState('');
     const [orderQty, setOrderQty] = useState('');
@@ -36,12 +42,12 @@ export default function Portfolio() {
             setSummary(data.summary);
             setHoldings(data.holdings || []);
             setAllocation(data.allocation || []);
-            if (data.holdings?.length > 0 && !selectedSymbol) {
+            if (data.holdings?.length > 0 && !selectedSymbolRef.current) {
                 setSelectedSymbol(data.holdings[0].symbol);
             }
         } catch { }
         setLoading(false);
-    }, [selectedSymbol]);
+    }, []); // No selectedSymbol dep — prevents infinite loop
 
     useEffect(() => { load(); }, [load]);
 
@@ -52,18 +58,20 @@ export default function Portfolio() {
     }, [loading, summary, markPageReady]);
 
     const loadChart = useCallback(async () => {
-        if (!selectedSymbol) return;
+        if (!selectedSymbolRef.current) return;
         setChartLoading(true);
         try {
-            const { data } = await api.get(`/trading/chart/${selectedSymbol}/?period=${chartPeriod}`);
+            const { data } = await api.get(`/trading/chart/${selectedSymbolRef.current}/?period=${chartPeriodRef.current}`);
             setChartData(data);
         } catch {
             setChartData(null);
         }
         setChartLoading(false);
-    }, [selectedSymbol, chartPeriod]);
+    }, []); // No selectedSymbol/chartPeriod deps — prevents infinite loop
 
+    // Re-run chart load any time selected symbol or period changes
     useEffect(() => { loadChart(); }, [loadChart]);
+    useEffect(() => { loadChart(); }, [selectedSymbol, chartPeriod]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const placeOrder = async () => {
         setOrderErr(''); setOrderMsg('');
