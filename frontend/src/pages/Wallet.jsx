@@ -87,7 +87,7 @@ export default function Wallet() {
                 payment_method_id: pm ? pm.id : null
             });
             setBalance(data.balance);
-            setMsg({ text: `✅ ${formatCurrency(amount)} added to your purse! Ref: ${data.ref}`, type: 'plus' });
+            setMsg({ text: t('deposit_success', { amount: formatCurrency(amount), ref: data.ref }), type: 'plus' });
             setAmount('');
             setShowCheckoutModal(false);
             loadData();
@@ -118,14 +118,14 @@ export default function Wallet() {
                 details,
                 is_default: paymentMethods.length === 0
             });
-            setPmMsg('Payment method added!');
+            setPmMsg(t('pm_added_success'));
             setPmAccountName('');
             setPmLabel('');
             setPmDetails('');
             await loadData();
             setTimeout(() => setShowAddPMModal(false), 800);
         } catch (err) {
-            setPmMsg('Failed to add method. Try again.');
+            setPmMsg(t('pm_add_failed'));
         } finally {
             setPmSaving(false);
         }
@@ -134,6 +134,7 @@ export default function Wallet() {
     const handleDeletePM = async (id) => {
         try {
             await api.delete(`/users/payment-methods/${id}/`);
+            setMsg({ text: t('pm_deleted_success'), type: 'minus' });
             loadData();
         } catch { }
     };
@@ -200,7 +201,7 @@ export default function Wallet() {
                     </div>
                     <div className={styles.balanceActions}>
                         <button className={styles.limitBtn} onClick={() => setShowLimitModal(true)}>
-                            {spendingLimit ? `✏️ ${t('set_limit').replace('✅ ', '')}` : `🛡️ ${t('spending_limit')}`}
+                            {spendingLimit ? `✏️ ${t('set_limit')}` : `🛡️ ${t('spending_limit')}`}
                         </button>
                         <div className={styles.purseIcon}>💰</div>
                     </div>
@@ -332,7 +333,7 @@ export default function Wallet() {
                                 <img src="https://api.dicebear.com/7.x/initials/svg?seed=StockPulse" alt="StockPulse" />
                                 <div>
                                     <h4>StockPulse Financial</h4>
-                                    <p>Transaction ID: #SP-{Math.floor(Math.random() * 9000000 + 1000000)}</p>
+                                    <p>{t('nav_live')}</p>
                                 </div>
                             </div>
 
@@ -390,7 +391,7 @@ export default function Wallet() {
                                         style={pmType === tp ? { borderColor: PM_COLORS[tp], color: PM_COLORS[tp] } : {}}
                                         onClick={() => setPmType(tp)}
                                     >
-                                        {PM_ICONS[tp]} {tp === 'UPI' ? 'UPI ID' : 'Bank Account'}
+                                        {PM_ICONS[tp]} {tp === 'UPI' ? t('upi_id') : t('bank_account_no')}
                                     </button>
                                 ))}
                             </div>
@@ -456,7 +457,7 @@ export default function Wallet() {
                                 )}
 
                                 <button type="submit" className={styles.payNowBtn} disabled={pmSaving} style={{ marginTop: '1rem' }}>
-                                    {pmSaving ? t('saving') : `${t('save')} ${pmType === 'UPI' ? t('upi_id') : 'Bank Account'}`}
+                                    {pmSaving ? t('saving') : `${t('save')} ${pmType === 'UPI' ? t('upi_id') : t('bank_account_no')}`}
                                 </button>
                             </form>
                         </div>
@@ -476,7 +477,7 @@ export default function Wallet() {
                         </div>
                         <div className={styles.modalBody}>
                             <p className={styles.hint}>
-                                Set the maximum amount you can debit from your purse. You'll be alerted when any single transaction exceeds this limit.
+                                {t('purse_wallet_desc')}
                             </p>
                             {spendingLimit && (
                                 <div className={styles.currentLimit}>
