@@ -1,19 +1,8 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import Layout from '../components/Layout';
-import StockLogo from '../components/StockLogo';
-import api from '../api/axios';
-import { useTour } from '../context/TourContext';
-import styles from './Portfolio.module.css';
-import Chart from 'react-apexcharts';
-
-const fmt = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+import { useSettings } from '../context/SettingsContext';
 
 export default function Portfolio() {
+    const { t, formatCurrency, formatCurrencyCompact, currency } = useSettings();
     const [holdings, setHoldings] = useState([]);
-    const [summary, setSummary] = useState(null);
-    const [allocation, setAllocation] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const { markPageReady } = useTour();
 
     // Chart data for selected stock
     const [selectedSymbol, setSelectedSymbol] = useState('');
@@ -87,14 +76,14 @@ export default function Portfolio() {
                 type: orderType,
             });
             if (data.status) {
-                setOrderMsg(`✅ ${data.status} — Price: $${fmt(data.executed_price)}`);
+                setOrderMsg(`✅ ${data.status} — ${t('price')}: ${formatCurrency(data.executed_price)}`);
                 setOrderQty('');
                 setTimeout(() => { setOrderMsg(''); load(); }, 2000);
             } else {
-                setOrderErr(data.error || 'Order failed.');
+                setOrderErr(data.error || t('order_failed'));
             }
         } catch (e) {
-            setOrderErr(e.response?.data?.error || 'Order failed.');
+            setOrderErr(e.response?.data?.error || t('order_failed'));
         }
         setOrderLoading(false);
     };
@@ -118,7 +107,7 @@ export default function Portfolio() {
                 borderColor: '#f59e0b',
                 strokeDashArray: 6,
                 label: {
-                    text: `Target: $${fmt(targetPrice)}`,
+                    text: `${t('target')}: ${formatCurrency(targetPrice)}`,
                     style: {
                         color: '#0f172a',
                         background: '#f59e0b',
@@ -171,7 +160,7 @@ export default function Portfolio() {
                 tooltip: { enabled: true },
                 labels: {
                     style: { colors: '#64748b', fontSize: '10px' },
-                    formatter: (v) => `$${v?.toFixed(2)}`,
+                    formatter: (v) => formatCurrency(v),
                 },
             },
             grid: {
@@ -185,7 +174,7 @@ export default function Portfolio() {
         };
 
         const series = [
-            { name: 'Price', type: 'candlestick', data: ohlc },
+            { name: t('price'), type: 'candlestick', data: ohlc },
             {
                 name: 'EMA 20',
                 type: 'line',
@@ -195,7 +184,7 @@ export default function Portfolio() {
 
         if (predictionSeries.length > 0) {
             series.push({
-                name: 'Prediction',
+                name: t('prediction'),
                 type: 'line',
                 data: predictionSeries,
             });
@@ -243,8 +232,8 @@ export default function Portfolio() {
                 },
                 annotations: {
                     yaxis: [
-                        { y: 70, borderColor: '#ef4444', strokeDashArray: 3, label: { text: 'Overbought', style: { color: '#ef4444', background: 'transparent', fontSize: '9px' } } },
-                        { y: 30, borderColor: '#10b981', strokeDashArray: 3, label: { text: 'Oversold', style: { color: '#10b981', background: 'transparent', fontSize: '9px' } } },
+                        { y: 70, borderColor: '#ef4444', strokeDashArray: 3, label: { text: t('overbought'), style: { color: '#ef4444', background: 'transparent', fontSize: '9px' } } },
+                        { y: 30, borderColor: '#10b981', strokeDashArray: 3, label: { text: t('oversold'), style: { color: '#10b981', background: 'transparent', fontSize: '9px' } } },
                     ],
                 },
                 tooltip: { theme: 'dark' },
@@ -272,9 +261,9 @@ export default function Portfolio() {
                             formatter: (v) => `${Number(v).toFixed(1)}%`
                         },
                         total: {
-                            show: true, showAlways: true, label: 'EQUITY',
+                            show: true, showAlways: true, label: t('equity_tag'),
                             fontSize: '10px', fontWeight: 600, color: '#64748b',
-                            formatter: () => `${allocation.length} Stocks`
+                            formatter: () => `${allocation.length} ${t('stocks_held')}`
                         }
                     }
                 }
@@ -284,7 +273,7 @@ export default function Portfolio() {
             position: 'bottom', labels: { colors: '#94a3b8' }, fontSize: '11px',
             formatter: (name, opts) => `${name} (${allocation[opts.seriesIndex]?.percentage || 0}%)`
         },
-        tooltip: { theme: 'dark', y: { formatter: (v) => `$${fmt(v)}` } },
+        tooltip: { theme: 'dark', y: { formatter: (v) => formatCurrency(v) } },
         dataLabels: { enabled: false },
     };
 
@@ -300,29 +289,29 @@ export default function Portfolio() {
     });
 
     return (
-        <Layout pageTitle="Portfolio">
+        <Layout pageTitle={t('portfolio')}>
             {/* Summary Bar */}
             {summary && (
                 <div className={styles.summaryGrid}>
                     <div className={styles.summaryCard} data-tour="total-invested">
-                        <span className={styles.sLabel}>TOTAL INVESTED</span>
-                        <span className={styles.sValue}>${fmt(summary.total_investment)}</span>
+                        <span className={styles.sLabel}>{t('total_invested')}</span>
+                        <span className={styles.sValue}>{formatCurrency(summary.total_investment)}</span>
                         <div className={styles.sBar} style={{ background: '#3b82f6' }} />
                     </div>
                     <div className={styles.summaryCard} data-tour="current-value">
-                        <span className={styles.sLabel}>CURRENT VALUE</span>
-                        <span className={styles.sValue}>${fmt(summary.total_current_value)}</span>
+                        <span className={styles.sLabel}>{t('current_value_upper')}</span>
+                        <span className={styles.sValue}>{formatCurrency(summary.total_current_value)}</span>
                         <div className={styles.sBar} style={{ background: '#8b5cf6' }} />
                     </div>
                     <div className={styles.summaryCard} data-tour="total-pl">
-                        <span className={styles.sLabel}>P&L</span>
+                        <span className={styles.sLabel}>{t('total_p_l_upper')}</span>
                         <span className={`${styles.sValue} ${plClass(summary.total_p_l)}`}>
-                            {summary.total_p_l >= 0 ? '+' : ''}${fmt(summary.total_p_l)} ({summary.total_p_l_pct.toFixed(2)}%)
+                            {summary.total_p_l >= 0 ? '+' : ''}{formatCurrency(summary.total_p_l)} ({summary.total_p_l_pct.toFixed(2)}%)
                         </span>
                         <div className={styles.sBar} style={{ background: summary.total_p_l >= 0 ? '#10b981' : '#ef4444' }} />
                     </div>
                     <div className={styles.summaryCard}>
-                        <span className={styles.sLabel}>STOCKS</span>
+                        <span className={styles.sLabel}>{t('stocks_held_upper')}</span>
                         <span className={styles.sValue}>{summary.stock_count}</span>
                         <div className={styles.sBar} style={{ background: '#f59e0b' }} />
                     </div>
@@ -335,7 +324,7 @@ export default function Portfolio() {
                 <div className={styles.card} data-tour="performance-chart">
                     <div className={styles.cardHeader}>
                         <div className={styles.chartHeaderLeft}>
-                            <h3>📈 Live Stock Lookup</h3>
+                            <h3>📈 {t('live_stock_lookup')}</h3>
                             {holdings.length > 0 && (
                                 <div className={styles.stockTabs}>
                                     {holdings.map(h => (
@@ -379,9 +368,9 @@ export default function Portfolio() {
                                             </div>
                                         </div>
                                         <div className={styles.stockMeta}>
-                                            <span className={styles.stockPrice}>${fmt(chartData.current_price)}</span>
+                                            <span className={styles.stockPrice}>{formatCurrency(chartData.current_price)}</span>
                                             {chartData.target_mean_price && (
-                                                <span className={styles.targetLabel}>Target: ${fmt(chartData.target_mean_price)}</span>
+                                                <span className={styles.targetLabel}>{t('target')}: {formatCurrency(chartData.target_mean_price)}</span>
                                             )}
                                         </div>
                                         <div className={styles.fundBadges}>
@@ -397,14 +386,14 @@ export default function Portfolio() {
 
                                     {/* RSI Chart */}
                                     <div className={styles.rsiSection}>
-                                        <div className={styles.rsiLabel}>Relative Strength Index (14)</div>
+                                        <div className={styles.rsiLabel}>{t('rsi_name_full')} (14)</div>
                                         <Chart options={rsiOpts} series={rsiSeries} type="line" height={270} />
                                     </div>
                                 </>
                             ) : (
                                 <div className={styles.emptyChart}>
                                     <div style={{ fontSize: '3rem', opacity: 0.3 }}>📊</div>
-                                    <p>Select a stock from your portfolio to view charts</p>
+                                    <p>{t('select_stock_to_view')}</p>
                                 </div>
                             )
                         }
@@ -415,26 +404,26 @@ export default function Portfolio() {
                 <div className={styles.sideColumn}>
                     {/* Place Order */}
                     <div className={styles.card} data-tour="buy-sell">
-                        <div className={styles.cardHeader}><h3>⚡ Place Order</h3></div>
+                        <div className={styles.cardHeader}><h3>⚡ {t('place_order')}</h3></div>
                         <div className={styles.cardBody}>
                             <div className={styles.formGroup}>
-                                <label>SYMBOL</label>
+                                <label>{t('symbol_upper')}</label>
                                 <input className={styles.input} value={orderSymbol}
                                     onChange={e => setOrderSymbol(e.target.value)} placeholder="e.g. TSLA" />
                             </div>
                             <div className={styles.formGroup}>
-                                <label>QTY</label>
+                                <label>{t('qty_upper')}</label>
                                 <input className={styles.input} type="number" value={orderQty} min="1"
-                                    onChange={e => setOrderQty(e.target.value)} placeholder="Shares" />
+                                    onChange={e => setOrderQty(e.target.value)} placeholder={t('shares_placeholder_short')} />
                             </div>
                             <div className={styles.orderTypeBtns}>
-                                <button className={`${styles.btnBuy} ${orderType === 'BUY' ? '' : styles.dimmed}`} onClick={() => setOrderType('BUY')}>BUY</button>
-                                <button className={`${styles.btnSell} ${orderType === 'SELL' ? '' : styles.dimmed}`} onClick={() => setOrderType('SELL')}>SELL</button>
+                                <button className={`${styles.btnBuy} ${orderType === 'BUY' ? '' : styles.dimmed}`} onClick={() => setOrderType('BUY')}>{t('buy_btn')}</button>
+                                <button className={`${styles.btnSell} ${orderType === 'SELL' ? '' : styles.dimmed}`} onClick={() => setOrderType('SELL')}>{t('sell_btn')}</button>
                             </div>
                             {orderErr && <div className={styles.error}>{orderErr}</div>}
                             {orderMsg && <div className={styles.success}>{orderMsg}</div>}
                             <button className={styles.btnExecute} onClick={placeOrder} disabled={orderLoading}>
-                                {orderLoading ? '⏳ Executing…' : 'Execute Order'}
+                                {orderLoading ? `⏳ ${t('executing')}` : t('execute_order_btn')}
                             </button>
                         </div>
                     </div>
@@ -442,33 +431,33 @@ export default function Portfolio() {
                     {/* AI Trend Prediction */}
                     {chartData && chartData.target_mean_price && (
                         <div className={styles.card}>
-                            <div className={styles.cardHeader}><h3>🤖 AI Trend Prediction</h3></div>
+                            <div className={styles.cardHeader}><h3>🤖 {t('ai_trend_prediction')}</h3></div>
                             <div className={styles.cardBody}>
                                 <div className={styles.predictionBox}>
                                     <div className={styles.predRow}>
-                                        <span className={styles.predLabel}>Current</span>
-                                        <span className={styles.predValue}>${fmt(chartData.current_price)}</span>
+                                        <span className={styles.predLabel}>{t('current')}</span>
+                                        <span className={styles.predValue}>{formatCurrency(chartData.current_price)}</span>
                                     </div>
                                     <div className={`${styles.predRow} ${styles.predTarget}`}>
-                                        <span className={styles.predLabel}>Analyst Target</span>
-                                        <span className={styles.predValue}>${fmt(chartData.target_mean_price)}</span>
+                                        <span className={styles.predLabel}>{t('analyst_target')}</span>
+                                        <span className={styles.predValue}>{formatCurrency(chartData.target_mean_price)}</span>
                                     </div>
                                     <div className={styles.predRow}>
-                                        <span className={styles.predLabel}>Upside/Downside</span>
+                                        <span className={styles.predLabel}>{t('upside_downside')}</span>
                                         <span className={`${styles.predValue} ${chartData.target_mean_price >= chartData.current_price ? styles.positive : styles.negative}`}>
                                             {((chartData.target_mean_price - chartData.current_price) / chartData.current_price * 100).toFixed(1)}%
                                         </span>
                                     </div>
                                     {chartData.target_high_price && (
                                         <div className={styles.predRow}>
-                                            <span className={styles.predLabel}>Target High</span>
-                                            <span className={styles.predValue}>${fmt(chartData.target_high_price)}</span>
+                                            <span className={styles.predLabel}>{t('target_high')}</span>
+                                            <span className={styles.predValue}>{formatCurrency(chartData.target_high_price)}</span>
                                         </div>
                                     )}
                                     {chartData.target_low_price && (
                                         <div className={styles.predRow}>
-                                            <span className={styles.predLabel}>Target Low</span>
-                                            <span className={styles.predValue}>${fmt(chartData.target_low_price)}</span>
+                                            <span className={styles.predLabel}>{t('target_low')}</span>
+                                            <span className={styles.predValue}>{formatCurrency(chartData.target_low_price)}</span>
                                         </div>
                                     )}
                                 </div>
@@ -478,7 +467,7 @@ export default function Portfolio() {
 
                     {/* Donut */}
                     <div className={styles.card} data-tour="asset-allocation">
-                        <div className={styles.cardHeader}><h3>Asset Allocation</h3></div>
+                        <div className={styles.cardHeader}><h3>{t('asset_allocation')}</h3></div>
                         <div className={styles.cardBody} style={{ display: 'flex', justifyContent: 'center' }}>
                             {allocation.length > 0 ? (
                                 <Chart options={donutOptions} series={allocation.map(a => a.value)} type="donut" height={230} width={280} />
@@ -493,8 +482,8 @@ export default function Portfolio() {
             {/* Detailed Holdings Table */}
             <div className={styles.card} style={{ marginTop: '1.2rem' }} data-tour="transactions-section">
                 <div className={styles.cardHeader}>
-                    <h3>Detailed Holdings</h3>
-                    <button className={styles.refreshBtn} onClick={load}>↻ Refresh</button>
+                    <h3>{t('detailed_holdings')}</h3>
+                    <button className={styles.refreshBtn} onClick={load}>↻ {t('refresh')}</button>
                 </div>
                 <div className={styles.cardBody}>
                     {loading ? (
@@ -504,8 +493,8 @@ export default function Portfolio() {
                             <table className={styles.table}>
                                 <thead>
                                     <tr>
-                                        <th>TYPE</th><th>COMPANY</th><th>QTY</th><th>AVG COST</th>
-                                        <th>CHANGE</th><th>LIVE PRICE</th><th>CURRENT</th><th>P&amp;L %</th>
+                                        <th>{t('type_upper')}</th><th>{t('company_upper')}</th><th>{t('qty_upper')}</th><th>{t('avg_cost_upper')}</th>
+                                        <th>{t('change_upper')}</th><th>{t('live_price_upper')}</th><th>{t('current_upper')}</th><th>P&amp;L %</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -513,7 +502,7 @@ export default function Portfolio() {
                                         <tr key={h.symbol} className={styles.tableRow}>
                                             <td>
                                                 <span className={`${styles.typeBadge} ${h.p_l >= 0 ? styles.badgeBuy : styles.badgeSell}`}>
-                                                    {h.p_l >= 0 ? 'BUY' : 'SELL'}
+                                                    {h.p_l >= 0 ? t('buy_tag') : t('sell_tag')}
                                                 </span>
                                             </td>
                                             <td className={styles.symbolCell}>
@@ -533,12 +522,12 @@ export default function Portfolio() {
                                                 )}
                                             </td>
                                             <td>{h.quantity}</td>
-                                            <td>${fmt(h.avg_price)}</td>
+                                            <td>{formatCurrency(h.avg_price)}</td>
                                             <td>
                                                 <span className={plClass(h.change)}>{h.change >= 0 ? '+' : ''}{h.change_pct?.toFixed(1)}%</span>
                                             </td>
-                                            <td>${fmt(h.live_price)}</td>
-                                            <td>${fmt(h.current_value)}</td>
+                                            <td>{formatCurrency(h.live_price)}</td>
+                                            <td>{formatCurrency(h.current_value)}</td>
                                             <td>
                                                 <span className={`${styles.plBadge} ${h.p_l >= 0 ? styles.plPositive : styles.plNegative}`}>
                                                     {h.p_l_pct >= 0 ? '+' : ''}{h.p_l_pct.toFixed(1)}%
@@ -552,7 +541,7 @@ export default function Portfolio() {
                     ) : (
                         <div className={styles.emptyChart}>
                             <div style={{ fontSize: '2.5rem', opacity: 0.3 }}>💼</div>
-                            <p>Portfolio is empty. Start trading!</p>
+                            <p>{t('portfolio_empty')}</p>
                         </div>
                     )}
                 </div>
@@ -560,19 +549,19 @@ export default function Portfolio() {
 
             {/* Transaction Volume */}
             <div className={styles.card} style={{ marginTop: '1.2rem' }}>
-                <div className={styles.cardHeader}><h3>Transaction Volume (Last 30 Days)</h3></div>
+                <div className={styles.cardHeader}><h3>{t('transaction_volume_30d')}</h3></div>
                 <div className={styles.cardBody}>
                     {holdings.map(h => (
                         <div key={h.symbol} className={styles.txVolRow}>
                             <span className={`${styles.typeBadge} ${h.p_l >= 0 ? styles.badgeBuy : styles.badgeSell}`}>
-                                {h.p_l >= 0 ? 'BUY' : 'SELL'}
+                                {h.p_l >= 0 ? t('buy_tag') : t('sell_tag')}
                             </span>
                             <span className={styles.txVolSymbol}>{h.symbol}</span>
                             <span className={styles.txVolQty}>{h.quantity}</span>
                             <span className={styles.txVolMeta}>{h.symbol}</span>
-                            <span className={styles.txVolMeta}>{h.quantity} shares</span>
-                            <span className={styles.txVolPrice}>${fmt(h.avg_price)}</span>
-                            <span className={styles.txVolPrice}>${fmt(h.current_value)}</span>
+                            <span className={styles.txVolMeta}>{h.quantity} {t('shares')}</span>
+                            <span className={styles.txVolPrice}>{formatCurrency(h.avg_price)}</span>
+                            <span className={styles.txVolPrice}>{formatCurrency(h.current_value)}</span>
                             <span className={`${styles.plBadge} ${h.p_l >= 0 ? styles.plPositive : styles.plNegative}`}>
                                 {h.p_l_pct >= 0 ? '+' : ''}{h.p_l_pct.toFixed(1)}%
                             </span>
@@ -583,7 +572,7 @@ export default function Portfolio() {
 
             {/* Trending Stocks Footer */}
             <div className={styles.trendingBar}>
-                <span className={styles.trendingLabel}>Trending Stocks</span>
+                <span className={styles.trendingLabel}>{t('trending_stocks')}</span>
                 {['MSFT', 'META', 'NFLX', 'AMZN', 'GOOGL'].map(s => (
                     <span key={s} className={styles.trendingItem}>{s} {Math.random() > 0.5 ? '▲' : '▼'}</span>
                 ))}

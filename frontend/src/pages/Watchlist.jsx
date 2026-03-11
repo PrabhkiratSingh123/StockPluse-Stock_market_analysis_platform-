@@ -5,25 +5,7 @@ import api from '../api/axios';
 import { useTour } from '../context/TourContext';
 import styles from './Watchlist.module.css';
 
-// ── Formatters ──────────────────────────────────────────────────────────────
-const fmtCompact = (n) => {
-    if (!n) return 'N/A';
-    if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
-    if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-    if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
-    return `$${n.toLocaleString()}`;
-};
-
-const fmtPrice = (n) =>
-    n != null ? `$${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A';
-
-const fmtVolume = (n) => {
-    if (!n) return 'N/A';
-    if (n >= 1e9) return `${(n / 1e9).toFixed(1)}B`;
-    if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
-    if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`;
-    return n.toLocaleString();
-};
+import { useSettings } from '../context/SettingsContext';
 
 // ── Synthetic analyst firms (displayed from real recommendation data) ─────
 const ANALYST_FIRMS = [
@@ -87,6 +69,7 @@ function NewsItem({ item }) {
         ? (() => {
             const now = Date.now() / 1000;
             const diff = now - item.providerPublishTime;
+            // Note: Keeping time strings short as requested in previous patterns, but translated
             if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
             if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
             return new Date(item.providerPublishTime * 1000).toLocaleDateString([], { month: 'short', day: 'numeric' });
@@ -120,9 +103,10 @@ function NewsItem({ item }) {
 }
 
 // ── Expert Analyst Card ──────────────────────────────────────────────────────
-function ExpertCard({ firm, targetLow, targetHigh, targetMean, recKey, analysts }) {
+function ExpertCard({ firm, targetLow, targetHigh, targetMean, recKey, analysts, formatCurrency }) {
+    const { t } = useSettings();
     const rec = RECOMMEND_META[recKey] || RECOMMEND_META['hold'];
-    const priceDelta = targetMean ? fmtPrice(targetMean) : 'N/A';
+    const priceDelta = targetMean ? formatCurrency(targetMean) : 'N/A';
 
     return (
         <div className={styles.expertCard}>
@@ -145,16 +129,8 @@ function ExpertCard({ firm, targetLow, targetHigh, targetMean, recKey, analysts 
 // Main Watchlist Component
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export default function Watchlist() {
+    const { t, formatCurrency, formatCurrencyCompact } = useSettings();
     const [items, setItems] = useState([]);
-    const [liveMap, setLiveMap] = useState({});
-    const [newsMap, setNewsMap] = useState({});    // symbol → news[]
-    const [symbol, setSymbol] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [selectedSymbol, setSelectedSymbol] = useState(null);
-    const [activeTab, setActiveTab] = useState('bio'); // 'bio' | 'expert' | 'news'
-    const [newsLoading, setNewsLoading] = useState(false);
-    const { markPageReady } = useTour();
 
     // Ref so `load` can read selectedSymbol without it being a dep (prevents infinite loop)
     const selectedSymbolRef = useRef(null);
@@ -243,10 +219,10 @@ export default function Watchlist() {
                 setSelectedSymbol(sym);
                 load();
             } else {
-                setError(data.error || 'Could not add symbol.');
+                setError(data.error || t('could_not_add_symbol'));
             }
         } catch (e) {
-            setError(e.response?.data?.error || 'Failed to add.');
+            setError(e.response?.data?.error || t('failed_to_add'));
         }
     };
 
@@ -273,7 +249,7 @@ export default function Watchlist() {
 
 
     return (
-        <Layout pageTitle="Watchlist">
+        <Layout pageTitle={t('watchlist')}>
             <div className={styles.shell}>
 
                 {/* ── LEFT: Watchlist Sidebar ────────────────────────────── */}
@@ -281,7 +257,7 @@ export default function Watchlist() {
                     <div className={styles.sidebarHeader}>
                         <div className={styles.sidebarTitle}>
                             <span className={styles.sidebarIcon}>⊞</span>
-                            <span>My Watchlist</span>
+                            <span>{t('my_watchlist')}</span>
                         </div>
                         <span className={styles.sidebarCount}>{items.length}</span>
                     </div>
@@ -312,8 +288,8 @@ export default function Watchlist() {
                         ) : items.length === 0 ? (
                             <div className={styles.emptyState}>
                                 <div className={styles.emptyIcon}>👀</div>
-                                <p>Your watchlist is empty.</p>
-                                <span>Add a ticker above to get started.</span>
+                                <p>{t('watchlist_empty')}</p>
+                                <span>{t('add_ticker_to_start')}</span>
                             </div>
                         ) : (
                             items.map(item => {
@@ -348,7 +324,7 @@ export default function Watchlist() {
                                         <div className={styles.sidebarItemRight}>
                                             {live ? (
                                                 <>
-                                                    <span className={styles.sidebarPrice}>{fmtPrice(live.price)}</span>
+                                                    <span className={styles.sidebarPrice}>{formatCurrency(live.price)}</span>
                                                     <span className={`${styles.sidebarChange} ${up ? styles.up : styles.down}`}>
                                                         {up ? '▲' : '▼'} {Math.abs(live.change_pct ?? 0).toFixed(2)}%
                                                     </span>
@@ -376,14 +352,14 @@ export default function Watchlist() {
                     {!selectedSymbol ? (
                         <div className={styles.emptyMain}>
                             <div className={styles.emptyMainIcon}>📊</div>
-                            <h2>Select a stock from your watchlist</h2>
-                            <p>Add tickers to your watchlist and click to explore the Crystal Clear dashboard.</p>
+                            <h2>{t('select_stock_from_watchlist')}</h2>
+                            <p>{t('add_tickers_to_explore')}</p>
                         </div>
                     ) : !activeData ? (
                         <div className={styles.emptyMain}>
                             <div className={`${styles.emptyMainIcon} ${styles.pulseAnim}`}>⚡</div>
-                            <h2>Fetching Market Data…</h2>
-                            <p>Loading live data for <strong>{selectedSymbol}</strong></p>
+                            <h2>{t('fetching_market_data')}</h2>
+                            <p>{t('loading_live_data_for')} <strong>{selectedSymbol}</strong></p>
                         </div>
                     ) : (
                         <div className={styles.dashboard}>
@@ -414,23 +390,23 @@ export default function Watchlist() {
                                         <p className={styles.heroTagline}>
                                             {activeData.summary
                                                 ? activeData.summary.split('.')[0] + '.'
-                                                : 'No description available.'}
+                                                : t('no_description')}
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* Live price block */}
                                 <div className={styles.heroPriceBlock}>
-                                    <div className={styles.heroPrice}>{fmtPrice(activeData.price)}</div>
+                                    <div className={styles.heroPrice}>{formatCurrency(activeData.price)}</div>
                                     <div className={`${styles.heroChange} ${activeData.change >= 0 ? styles.up : styles.down}`}>
                                         {activeData.change >= 0 ? '▲' : '▼'}&nbsp;
-                                        {fmtPrice(Math.abs(activeData.change))}&nbsp;
+                                        {formatCurrency(Math.abs(activeData.change))}&nbsp;
                                         ({Math.abs(activeData.change_pct ?? 0).toFixed(2)}%)
                                     </div>
                                     <div className={styles.heroMeta}>
-                                        {activeData.open && <span>O: {fmtPrice(activeData.open)}</span>}
-                                        {activeData.high && <span>H: {fmtPrice(activeData.high)}</span>}
-                                        {activeData.low && <span>L: {fmtPrice(activeData.low)}</span>}
+                                        {activeData.open && <span>{t('open_short')}: {formatCurrency(activeData.open)}</span>}
+                                        {activeData.high && <span>{t('high_short')}: {formatCurrency(activeData.high)}</span>}
+                                        {activeData.low && <span>{t('low_short')}: {formatCurrency(activeData.low)}</span>}
                                     </div>
                                 </div>
                             </div>
@@ -438,34 +414,34 @@ export default function Watchlist() {
                             {/* ── SUMMARY RIBBON ───────────────────────── */}
                             <div className={styles.ribbon}>
                                 <div className={styles.ribbonTopLine} />
-                                <MetricPill label="Market Cap" value={fmtCompact(activeData.market_cap)} />
+                                <MetricPill label={t('market_cap')} value={formatCurrencyCompact(activeData.market_cap)} />
                                 <div className={styles.ribbonDivider} />
                                 <MetricPill label="P/E Ratio" value={activeData.pe_ratio ? `${Number(activeData.pe_ratio).toFixed(1)}×` : 'N/A'} />
                                 <div className={styles.ribbonDivider} />
                                 <MetricPill
-                                    label="12-Mo Target"
-                                    value={fmtPrice(activeData.target_mean_price)}
-                                    sub="Analyst Avg."
+                                    label={t('target_12mo')}
+                                    value={formatCurrency(activeData.target_mean_price)}
+                                    sub={t('analyst_avg')}
                                     highlight
                                 />
                                 <div className={styles.ribbonDivider} />
                                 <MetricPill
-                                    label="Target Range"
-                                    value={`${fmtPrice(activeData.target_low_price)} – ${fmtPrice(activeData.target_high_price)}`}
-                                    sub="Low – High"
+                                    label={t('target_range')}
+                                    value={`${formatCurrency(activeData.target_low_price)} – ${formatCurrency(activeData.target_high_price)}`}
+                                    sub={`${t('low')} – ${t('high')}`}
                                 />
                                 <div className={styles.ribbonDivider} />
                                 <MetricPill
-                                    label="EPS"
-                                    value={activeData.eps ? `$${Number(activeData.eps).toFixed(2)}` : 'N/A'}
+                                    label={t('eps')}
+                                    value={activeData.eps ? formatCurrency(activeData.eps) : 'N/A'}
                                 />
                                 <div className={styles.ribbonDivider} />
                                 <MetricPill
-                                    label="Div. Yield"
+                                    label={t('div_yield')}
                                     value={activeData.dividend_yield ? `${(activeData.dividend_yield * 100).toFixed(2)}%` : 'N/A'}
                                 />
                                 <div className={styles.ribbonDivider} />
-                                <MetricPill label="Volume" value={fmtVolume(activeData.volume)} />
+                                <MetricPill label={t('volume')} value={Number(activeData.volume).toLocaleString()} />
                             </div>
 
                             {/* ── CONTENT AREA ─────────────────────────── */}
@@ -475,9 +451,9 @@ export default function Watchlist() {
                                 <div className={styles.infoPanel}>
                                     <div className={styles.tabs}>
                                         {[
-                                            { key: 'bio', label: 'ℹ Company Bio' },
-                                            { key: 'expert', label: '★ Expert Talks' },
-                                            { key: 'news', label: '📰 News Feed' },
+                                            { key: 'bio', label: `ℹ ${t('company_bio')}` },
+                                            { key: 'expert', label: `★ ${t('expert_talks')}` },
+                                            { key: 'news', label: `📰 ${t('news_feed')}` },
                                         ].map(t => (
                                             <button
                                                 key={t.key}
@@ -496,7 +472,7 @@ export default function Watchlist() {
                                             <div className={styles.bioHeader}>
                                                 <div className={styles.bioIcon}>ℹ</div>
                                                 <div>
-                                                    <h3 className={styles.bioTitle}>Company Bio &amp; Strategy</h3>
+                                                    <h3 className={styles.bioTitle}>{t('company_bio_strategy')}</h3>
                                                     <p className={styles.bioSubtitle}>
                                                         {activeData.sector} · {activeData.industry}
                                                     </p>
@@ -512,7 +488,7 @@ export default function Watchlist() {
                                                     ))}
                                                 </ul>
                                             ) : (
-                                                <p className={styles.bioEmpty}>No description available for this ticker.</p>
+                                                <p className={styles.bioEmpty}>{t('no_description')}</p>
                                             )}
                                             {/* Key stats grid inside bio */}
                                             {(activeData.eps || activeData.beta || activeData.dividend_yield || activeData.market_cap) && (
@@ -537,8 +513,8 @@ export default function Watchlist() {
                                                     )}
                                                     {activeData.market_cap && (
                                                         <div className={styles.bioStat}>
-                                                            <span className={styles.bioStatLabel}>Mkt Cap</span>
-                                                            <span className={styles.bioStatValue}>{fmtCompact(activeData.market_cap)}</span>
+                                                            <span className={styles.bioStatLabel}>{t('market_cap_short')}</span>
+                                                            <span className={styles.bioStatValue}>{formatCurrencyCompact(activeData.market_cap)}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -552,9 +528,9 @@ export default function Watchlist() {
                                             <div className={styles.expertHeader}>
                                                 <div className={styles.expertIcon}>★</div>
                                                 <div>
-                                                    <h3 className={styles.expertTitle}>Expert Talks &amp; Analyst Sentiment</h3>
+                                                    <h3 className={styles.expertTitle}>{t('expert_talks_sentiment')}</h3>
                                                     <p className={styles.expertSubtitle}>
-                                                        Based on {activeData.number_of_analysts ?? 'multiple'} analyst evaluations
+                                                        {t('based_on_analysts').replace('{count}', activeData.number_of_analysts ?? t('multiple'))}
                                                     </p>
                                                 </div>
                                             </div>
@@ -562,12 +538,12 @@ export default function Watchlist() {
                                             {/* Consensus Bar */}
                                             <div className={styles.consensusBox}>
                                                 <div className={styles.consensusLeft}>
-                                                    <span className={styles.consensusLabel}>Wall St. Consensus</span>
+                                                    <span className={styles.consensusLabel}>{t('wall_st_consensus')}</span>
                                                     <span
                                                         className={styles.consensusBadge}
                                                         style={{ color: rec?.color, background: rec?.bg }}
                                                     >
-                                                        {rec?.label ?? 'Hold'}
+                                                        {rec?.label ?? t('hold_tag')}
                                                     </span>
                                                 </div>
                                                 <div className={styles.consensusBarTrack}>
@@ -581,17 +557,17 @@ export default function Watchlist() {
                                             {/* Target Price Blocks */}
                                             <div className={styles.targetRow}>
                                                 <div className={styles.targetBlock}>
-                                                    <span className={styles.targetLabel}>Low Target</span>
-                                                    <span className={`${styles.targetValue} ${styles.targetLow}`}>{fmtPrice(activeData.target_low_price)}</span>
+                                                    <span className={styles.targetLabel}>{t('target_low')}</span>
+                                                    <span className={`${styles.targetValue} ${styles.targetLow}`}>{formatCurrency(activeData.target_low_price)}</span>
                                                 </div>
                                                 <div className={`${styles.targetBlock} ${styles.targetBlockMid}`}>
-                                                    <span className={styles.targetLabel}>Avg. Target</span>
-                                                    <span className={`${styles.targetValue} ${styles.targetAvg}`}>{fmtPrice(activeData.target_mean_price)}</span>
-                                                    <span className={styles.targetSub}>12-Month Estimate</span>
+                                                    <span className={styles.targetLabel}>{t('target_avg')}</span>
+                                                    <span className={`${styles.targetValue} ${styles.targetAvg}`}>{formatCurrency(activeData.target_mean_price)}</span>
+                                                    <span className={styles.targetSub}>{t('estimate_12mo')}</span>
                                                 </div>
                                                 <div className={styles.targetBlock}>
-                                                    <span className={styles.targetLabel}>High Target</span>
-                                                    <span className={`${styles.targetValue} ${styles.targetHigh}`}>{fmtPrice(activeData.target_high_price)}</span>
+                                                    <span className={styles.targetLabel}>{t('target_high')}</span>
+                                                    <span className={`${styles.targetValue} ${styles.targetHigh}`}>{formatCurrency(activeData.target_high_price)}</span>
                                                 </div>
                                             </div>
 
@@ -606,6 +582,7 @@ export default function Watchlist() {
                                                         targetMean={activeData.target_mean_price}
                                                         recKey={activeData.recommendation}
                                                         analysts={activeData.number_of_analysts}
+                                                        formatCurrency={formatCurrency}
                                                     />
                                                 ))}
                                             </div>
@@ -613,11 +590,7 @@ export default function Watchlist() {
                                             {/* Risk note */}
                                             <div className={styles.riskNote}>
                                                 <span className={styles.riskIcon}>⚠</span>
-                                                <p>
-                                                    Analyst price targets and recommendations are forward-looking and subject
-                                                    to change. Market volatility, macro conditions, and earnings revisions
-                                                    may cause material deviation from these estimates.
-                                                </p>
+                                                <p>{t('analyst_risk_note')}</p>
                                             </div>
                                         </div>
                                     )}
@@ -627,9 +600,9 @@ export default function Watchlist() {
                                         <div className={styles.tabContent}>
                                             <div className={styles.newsHeader}>
                                                 <span className={styles.newsDot} />
-                                                <h3 className={styles.newsTitle2}>Live Sentiment Feed</h3>
-                                                <span className={styles.newsLiveBadge}>LIVE</span>
-                                                {newsLoading && <span style={{ fontSize: '0.65rem', color: '#475569', marginLeft: 'auto' }}>Refreshing…</span>}
+                                                <h3 className={styles.newsTitle2}>{t('live_sentiment_feed')}</h3>
+                                                <span className={styles.newsLiveBadge}>{t('live_tag_upper')}</span>
+                                                {newsLoading && <span style={{ fontSize: '0.65rem', color: '#475569', marginLeft: 'auto' }}>{t('refreshing')}</span>}
                                                 <button
                                                     onClick={() => selectedSymbol && fetchNews(selectedSymbol)}
                                                     title="Refresh news"
@@ -643,9 +616,9 @@ export default function Watchlist() {
                                                     ))}
                                                 </div>
                                             ) : newsLoading ? (
-                                                <div className={styles.newsEmpty}>Loading latest news…</div>
+                                                <div className={styles.newsEmpty}>{t('loading_news')}</div>
                                             ) : (
-                                                <div className={styles.newsEmpty}>No recent headlines available.</div>
+                                                <div className={styles.newsEmpty}>{t('no_headlines')}</div>
                                             )}
                                         </div>
                                     )}
@@ -655,8 +628,8 @@ export default function Watchlist() {
                                 <div className={styles.newsPanel}>
                                     <div className={styles.newsPanelHeader}>
                                         <span className={styles.newsDot} />
-                                        <span className={styles.newsPanelTitle}>Sentiment Feed</span>
-                                        <span className={styles.newsLiveBadge}>LIVE</span>
+                                        <span className={styles.newsPanelTitle}>{t('sentiment_feed')}</span>
+                                        <span className={styles.newsLiveBadge}>{t('live_tag_upper')}</span>
                                     </div>
                                     <div className={styles.newsPanelBody}>
                                         {activeNews.length > 0 ? (
@@ -664,9 +637,9 @@ export default function Watchlist() {
                                                 <NewsItem key={i} item={n} />
                                             ))
                                         ) : newsLoading ? (
-                                            <div className={styles.newsEmpty}>Fetching headlines…</div>
+                                            <div className={styles.newsEmpty}>{t('fetching_headlines')}</div>
                                         ) : (
-                                            <div className={styles.newsEmpty}>No headlines at this time.</div>
+                                            <div className={styles.newsEmpty}>{t('no_headlines_now')}</div>
                                         )}
                                     </div>
                                     <div className={styles.newsPanelFade} />

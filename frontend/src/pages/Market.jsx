@@ -1,25 +1,8 @@
-import { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
-import api from '../api/axios';
-import { useTour } from '../context/TourContext';
-import styles from './Market.module.css';
-import Chart from 'react-apexcharts';
-
-const fmt = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fmtCompact = (n) => {
-    if (!n) return '—';
-    if (n >= 1e12) return `${(n / 1e12).toFixed(2)}T`;
-    if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
-    if (n >= 1e6) return `${(n / 1e6).toFixed(2)}M`;
-    return fmt(n);
-};
+import { useSettings } from '../context/SettingsContext';
 
 export default function Market() {
+    const { t, formatCurrency, formatCurrencyCompact, currentCurrency, currency } = useSettings();
     const [liveSymbol, setLiveSymbol] = useState('');
-    const [liveData, setLiveData] = useState(null);
-    const [liveErr, setLiveErr] = useState('');
-    const [liveLoading, setLiveLoading] = useState(false);
-    const { markPageReady } = useTour();
 
     // Chart data
     const [chartData, setChartData] = useState(null);
@@ -66,7 +49,7 @@ export default function Market() {
                 setLiveData(liveRes.value.data);
                 setOrderSymbol(sym);
             } else {
-                setLiveErr('No data found for this symbol.');
+                setLiveErr(t('no_data_symbol'));
             }
 
             if (chartRes.status === 'fulfilled') setChartData(chartRes.value.data);
@@ -74,7 +57,7 @@ export default function Market() {
             if (predRes.status === 'fulfilled' && !predRes.value.data?.error) setPredData(predRes.value.data);
             if (walletRes.status === 'fulfilled') setWalletBalance(walletRes.value.data.balance);
         } catch {
-            setLiveErr('Network error. Is Django running?');
+            setLiveErr(t('network_error'));
         }
         setLiveLoading(false); setChartLoading(false);
     };
@@ -92,19 +75,19 @@ export default function Market() {
 
     const placeOrder = async () => {
         setOrderErr(''); setOrderOk('');
-        if (!orderSymbol || !orderQty || Number(orderQty) <= 0) { setOrderErr('Enter a valid symbol and quantity.'); return; }
+        if (!orderSymbol || !orderQty || Number(orderQty) <= 0) { setOrderErr(t('enter_valid_order')); return; }
         setOrderLoading(true);
         try {
             const { data } = await api.post('/trading/order/', { symbol: orderSymbol.toUpperCase(), quantity: Number(orderQty), type: orderType });
             if (data.status) {
-                setOrderOk(`✅ ${data.status} — Price: $${fmt(data.executed_price)}`);
+                setOrderOk(`✅ ${data.status} — ${t('price')}: ${formatCurrency(data.executed_price)}`);
                 setOrderQty('');
                 // Refresh wallet balance after trade
                 const wRes = await api.get('/users/wallet/');
                 setWalletBalance(wRes.data.balance);
             }
-            else setOrderErr(data.error || 'Order failed.');
-        } catch (e) { setOrderErr(e.response?.data?.error || 'Order failed.'); }
+            else setOrderErr(data.error || t('order_failed'));
+        } catch (e) { setOrderErr(e.response?.data?.error || t('order_failed')); }
         setOrderLoading(false);
     };
 
@@ -122,7 +105,7 @@ export default function Market() {
                 borderColor: '#f59e0b',
                 strokeDashArray: 6,
                 label: {
-                    text: `Analyst Target: $${fmt(targetPrice)}`,
+                    text: `${t('analyst_target')}: ${formatCurrency(targetPrice)}`,
                     style: { color: '#0f172a', background: '#f59e0b', fontSize: '10px', fontWeight: 700, padding: { left: 6, right: 6, top: 3, bottom: 3 } },
                     position: 'front',
                 }
@@ -134,13 +117,13 @@ export default function Market() {
                 chart: { type: 'candlestick', height: 380, background: 'transparent', toolbar: { show: true, tools: { download: false } }, zoom: { enabled: true } },
                 plotOptions: { candlestick: { colors: { upward: '#10b981', downward: '#ef4444' }, wick: { useFillColor: true } } },
                 xaxis: { type: 'datetime', labels: { style: { colors: '#64748b', fontSize: '10px' }, datetimeUTC: false }, axisBorder: { color: 'rgba(255,255,255,0.06)' } },
-                yaxis: { tooltip: { enabled: true }, labels: { style: { colors: '#64748b', fontSize: '10px' }, formatter: v => `$${v?.toFixed(2)}` } },
+                yaxis: { tooltip: { enabled: true }, labels: { style: { colors: '#64748b', fontSize: '10px' }, formatter: v => formatCurrency(v) } },
                 grid: { borderColor: 'rgba(255,255,255,0.05)', strokeDashArray: 4 },
                 annotations,
                 tooltip: { theme: 'dark' },
             },
             series: [
-                { name: 'Price', type: 'candlestick', data: ohlc },
+                { name: t('price'), type: 'candlestick', data: ohlc },
                 { name: 'EMA 20', type: 'line', data: ema },
             ]
         };
@@ -178,17 +161,17 @@ export default function Market() {
     const signalCls = trend.includes('BULL') ? styles.bullish : trend.includes('BEAR') ? styles.bearish : styles.neutralSignal;
 
     return (
-        <Layout pageTitle="Market">
+        <Layout pageTitle={t('market')}>
             {/* Search + Add Symbol */}
             <div className={styles.searchSection} data-tour="market-search">
                 <div className={styles.searchBar}>
                     <div className={styles.searchInputWrap}>
                         <span className={styles.searchIcon}>🔍</span>
                         <input className={styles.searchInput} value={liveSymbol} onChange={e => setLiveSymbol(e.target.value)}
-                            placeholder="Search any stock... AAPL, TSLA, GOOGL" onKeyDown={e => e.key === 'Enter' && fetchLive()} />
+                            placeholder={t('search_stock_placeholder')} onKeyDown={e => e.key === 'Enter' && fetchLive()} />
                     </div>
                     <button className={styles.btnSearch} onClick={fetchLive} disabled={liveLoading}>
-                        {liveLoading ? '⏳ Loading…' : '🚀 Analyze'}
+                        {liveLoading ? `⏳ ${t('loading')}` : `🚀 ${t('analyze')}`}
                     </button>
                 </div>
                 {liveErr && <div className={styles.error}>{liveErr}</div>}
@@ -207,9 +190,9 @@ export default function Market() {
                                     {liveData.sector && <span className={styles.sectorTag}>{liveData.sector}</span>}
                                 </div>
                                 <div className={styles.priceArea}>
-                                    <div className={styles.priceMain}>${fmt(liveData.price)}</div>
+                                    <div className={styles.priceMain}>{formatCurrency(liveData.price)}</div>
                                     <div className={`${styles.priceChange} ${liveData.change >= 0 ? styles.positive : styles.negative}`}>
-                                        {liveData.change >= 0 ? '▲' : '▼'} ${Math.abs(liveData.change).toFixed(2)} ({liveData.change_pct?.toFixed(2)}%)
+                                        {liveData.change >= 0 ? '▲' : '▼'} {formatCurrency(Math.abs(liveData.change))} ({liveData.change_pct?.toFixed(2)}%)
                                     </div>
                                 </div>
                             </div>
@@ -217,18 +200,18 @@ export default function Market() {
                             {/* Stats Grid */}
                             <div className={styles.statsGrid}>
                                 {[
-                                    { label: 'Open', value: `$${fmt(liveData.open)}` },
-                                    { label: 'High', value: `$${fmt(liveData.high)}` },
-                                    { label: 'Low', value: `$${fmt(liveData.low)}` },
-                                    { label: 'Volume', value: Number(liveData.volume).toLocaleString() },
-                                    { label: 'Avg Volume', value: liveData.avg_volume ? Number(liveData.avg_volume).toLocaleString() : '—' },
-                                    { label: 'Market Cap', value: fmtCompact(liveData.market_cap) },
+                                    { label: t('open'), value: formatCurrency(liveData.open) },
+                                    { label: t('high'), value: formatCurrency(liveData.high) },
+                                    { label: t('low'), value: formatCurrency(liveData.low) },
+                                    { label: t('volume'), value: Number(liveData.volume).toLocaleString() },
+                                    { label: t('avg_volume'), value: liveData.avg_volume ? Number(liveData.avg_volume).toLocaleString() : '—' },
+                                    { label: t('market_cap'), value: formatCurrencyCompact(liveData.market_cap) },
                                     { label: 'P/E Ratio', value: liveData.pe_ratio ? liveData.pe_ratio.toFixed(2) : '—' },
-                                    { label: 'EPS', value: liveData.eps ? `$${liveData.eps.toFixed(2)}` : '—' },
-                                    { label: 'Beta', value: liveData.beta ? liveData.beta.toFixed(2) : '—' },
-                                    { label: 'Div Yield', value: liveData.dividend_yield ? `${(liveData.dividend_yield * 100).toFixed(2)}%` : '—' },
-                                    { label: '52W High', value: liveData.fifty_two_week_high ? `$${fmt(liveData.fifty_two_week_high)}` : '—' },
-                                    { label: '52W Low', value: liveData.fifty_two_week_low ? `$${fmt(liveData.fifty_two_week_low)}` : '—' },
+                                    { label: t('eps'), value: liveData.eps ? formatCurrency(liveData.eps) : '—' },
+                                    { label: t('beta'), value: liveData.beta ? liveData.beta.toFixed(2) : '—' },
+                                    { label: t('div_yield'), value: liveData.dividend_yield ? `${(liveData.dividend_yield * 100).toFixed(2)}%` : '—' },
+                                    { label: '52W High', value: liveData.fifty_two_week_high ? formatCurrency(liveData.fifty_two_week_high) : '—' },
+                                    { label: '52W Low', value: liveData.fifty_two_week_low ? formatCurrency(liveData.fifty_two_week_low) : '—' },
                                 ].map(({ label, value }) => (
                                     <div key={label} className={styles.statItem}>
                                         <span className={styles.statLabel}>{label}</span>
@@ -241,7 +224,7 @@ export default function Market() {
                         {/* Candlestick Chart */}
                         <div className={styles.card}>
                             <div className={styles.cardHeader}>
-                                <h3>📊 Price Chart (Candlestick + EMA 20)</h3>
+                                <h3>📊 {t('price_chart')}</h3>
                                 <div className={styles.periodTabs}>
                                     {['1mo', '3mo', '6mo', '1y'].map(p => (
                                         <button key={p}
@@ -264,7 +247,7 @@ export default function Market() {
                         {chartData && (
                             <div className={styles.card}>
                                 <div className={styles.cardHeader}>
-                                    <h3>📈 RSI (Relative Strength Index)</h3>
+                                    <h3>📈 RSI ({t('rsi_name')})</h3>
                                 </div>
                                 <div className={styles.cardBody}>
                                     <Chart options={rsiOpts} series={rsiSeries} type="line" height={270} />
@@ -277,32 +260,32 @@ export default function Market() {
                     <div className={styles.sideColumn}>
                         {/* Place Order */}
                         <div className={styles.card} data-tour="market-trade">
-                            <div className={styles.cardHeader}><h3>⚡ Place Order</h3></div>
+                            <div className={styles.cardHeader}><h3>⚡ {t('place_order')}</h3></div>
                             <div className={styles.cardBody}>
                                 <div className={styles.formGroup}>
-                                    <label>SYMBOL</label>
+                                    <label>{t('symbol_upper')}</label>
                                     <input className={styles.input} value={orderSymbol} onChange={e => setOrderSymbol(e.target.value)} placeholder="e.g. AAPL" />
                                 </div>
                                 <div className={styles.formGroup}>
-                                    <label>QUANTITY</label>
+                                    <label>{t('quantity_upper')}</label>
                                     <input className={styles.input} type="number" value={orderQty} min="1"
-                                        onChange={e => setOrderQty(e.target.value)} placeholder="Number of shares" />
+                                        onChange={e => setOrderQty(e.target.value)} placeholder={t('shares_placeholder')} />
                                 </div>
                                 <div className={styles.orderTypeBtns}>
-                                    <button className={`${styles.btnBuy} ${orderType === 'BUY' ? '' : styles.dimmed}`} onClick={() => setOrderType('BUY')}>BUY</button>
-                                    <button className={`${styles.btnSell} ${orderType === 'SELL' ? '' : styles.dimmed}`} onClick={() => setOrderType('SELL')}>SELL</button>
+                                    <button className={`${styles.btnBuy} ${orderType === 'BUY' ? '' : styles.dimmed}`} onClick={() => setOrderType('BUY')}>{t('buy_btn')}</button>
+                                    <button className={`${styles.btnSell} ${orderType === 'SELL' ? '' : styles.dimmed}`} onClick={() => setOrderType('SELL')}>{t('sell_btn')}</button>
                                 </div>
 
                                 {walletBalance !== null && (
                                     <div className={styles.walletNote}>
-                                        Available Purse Balance: <b>${fmt(walletBalance)}</b>
+                                        {t('available_purse_balance')}: <b>{formatCurrency(walletBalance)}</b>
                                     </div>
                                 )}
 
                                 {orderErr && <div className={styles.error}>{orderErr}</div>}
                                 {orderOk && <div className={styles.success}>{orderOk}</div>}
                                 <button className={styles.btnExecute} onClick={placeOrder} disabled={orderLoading}>
-                                    {orderLoading ? '⏳ Executing…' : 'Execute Order'}
+                                    {orderLoading ? `⏳ ${t('executing')}` : t('execute_order_btn')}
                                 </button>
                             </div>
                         </div>
@@ -310,12 +293,12 @@ export default function Market() {
                         {/* Technical Indicators */}
                         {indData && !indData.error && (
                             <div className={styles.card}>
-                                <div className={styles.cardHeader}><h3>🔬 Technical Indicators</h3></div>
+                                <div className={styles.cardHeader}><h3>🔬 {t('technical_indicators')}</h3></div>
                                 <div className={styles.cardBody}>
                                     {/* Signal Badge */}
                                     {indData.signal && (
                                         <div className={styles.signalBox}>
-                                            <span className={styles.signalLabel}>Overall Signal</span>
+                                            <span className={styles.signalLabel}>{t('overall_signal')}</span>
                                             <span className={`${styles.signalBadge} ${styles[`signal${indData.signal}`]}`}>
                                                 {indData.signal}
                                             </span>
@@ -333,7 +316,7 @@ export default function Market() {
                                     </div>
                                     {indData.price_vs_ema20 && (
                                         <div className={styles.emaNote}>
-                                            Price is <strong className={indData.price_vs_ema20 === 'ABOVE' ? styles.positive : styles.negative}>
+                                            {t('price_is')} <strong className={indData.price_vs_ema20 === 'ABOVE' ? styles.positive : styles.negative}>
                                                 {indData.price_vs_ema20}
                                             </strong> EMA(20)
                                         </div>
@@ -345,16 +328,16 @@ export default function Market() {
                         {/* AI Prediction */}
                         {predData && !predData.error && (
                             <div className={styles.card}>
-                                <div className={styles.cardHeader}><h3>🤖 AI Trend Prediction</h3></div>
+                                <div className={styles.cardHeader}><h3>🤖 {t('ai_trend_prediction')}</h3></div>
                                 <div className={styles.cardBody}>
                                     <div className={styles.predBox}>
                                         <div className={styles.predMain}>
-                                            <div className={styles.predLabelText}>AI Signal for <b>{liveData.symbol}</b></div>
-                                            <div className={`${styles.predSignal} ${signalCls}`}>{trend || 'NEUTRAL'}</div>
+                                            <div className={styles.predLabelText}>{t('ai_signal_for')} <b>{liveData.symbol}</b></div>
+                                            <div className={`${styles.predSignal} ${signalCls}`}>{trend || t('neutral_signal')}</div>
                                         </div>
                                         {predData.confidence_score && (
                                             <div className={styles.confBar}>
-                                                <div className={styles.confLabel}>Confidence</div>
+                                                <div className={styles.confLabel}>{t('confidence')}</div>
                                                 <div className={styles.confTrack}>
                                                     <div className={styles.confFill} style={{ width: `${predData.confidence_score}%` }} />
                                                 </div>
@@ -379,27 +362,27 @@ export default function Market() {
                         {/* Target Price Card */}
                         {liveData.target_mean_price && (
                             <div className={styles.card}>
-                                <div className={styles.cardHeader}><h3>🎯 Analyst Targets</h3></div>
+                                <div className={styles.cardHeader}><h3>🎯 {t('analyst_targets')}</h3></div>
                                 <div className={styles.cardBody}>
                                     <div className={styles.targetGrid}>
                                         <div className={styles.targetItem}>
-                                            <span className={styles.targetLabel}>Target Mean</span>
-                                            <span className={styles.targetValue}>${fmt(liveData.target_mean_price)}</span>
+                                            <span className={styles.targetLabel}>{t('target_mean')}</span>
+                                            <span className={styles.targetValue}>{formatCurrency(liveData.target_mean_price)}</span>
                                         </div>
                                         {liveData.target_high_price && (
                                             <div className={styles.targetItem}>
-                                                <span className={styles.targetLabel}>Target High</span>
-                                                <span className={`${styles.targetValue} ${styles.positive}`}>${fmt(liveData.target_high_price)}</span>
+                                                <span className={styles.targetLabel}>{t('target_high')}</span>
+                                                <span className={`${styles.targetValue} ${styles.positive}`}>{formatCurrency(liveData.target_high_price)}</span>
                                             </div>
                                         )}
                                         {liveData.target_low_price && (
                                             <div className={styles.targetItem}>
-                                                <span className={styles.targetLabel}>Target Low</span>
-                                                <span className={`${styles.targetValue} ${styles.negative}`}>${fmt(liveData.target_low_price)}</span>
+                                                <span className={styles.targetLabel}>{t('target_low')}</span>
+                                                <span className={`${styles.targetValue} ${styles.negative}`}>{formatCurrency(liveData.target_low_price)}</span>
                                             </div>
                                         )}
                                         <div className={styles.targetItem}>
-                                            <span className={styles.targetLabel}>Upside</span>
+                                            <span className={styles.targetLabel}>{t('upside')}</span>
                                             <span className={`${styles.targetValue} ${liveData.target_mean_price >= liveData.price ? styles.positive : styles.negative}`}>
                                                 {((liveData.target_mean_price - liveData.price) / liveData.price * 100).toFixed(1)}%
                                             </span>
@@ -407,7 +390,7 @@ export default function Market() {
                                     </div>
                                     {liveData.recommendation && (
                                         <div className={styles.recBox}>
-                                            Recommendation: <strong>{liveData.recommendation.toUpperCase()}</strong>
+                                            {t('recommendation')}: <strong>{liveData.recommendation.toUpperCase()}</strong>
                                         </div>
                                     )}
                                 </div>
@@ -420,8 +403,8 @@ export default function Market() {
             {!liveData && !liveLoading && !liveErr && (
                 <div className={styles.welcomeBox}>
                     <div className={styles.welcomeIcon}>📊</div>
-                    <h2>Search Any Stock</h2>
-                    <p>Enter a ticker symbol above to get live prices, candlestick charts, technical indicators, and AI predictions — all powered by real-time yfinance data.</p>
+                    <h2>{t('search_any_stock_title')}</h2>
+                    <p>{t('search_any_stock_desc')}</p>
                     <div className={styles.suggestChips}>
                         {['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN', 'NVDA', 'META'].map(s => (
                             <button key={s} className={styles.suggestChip} onClick={() => { setLiveSymbol(s); }}>
