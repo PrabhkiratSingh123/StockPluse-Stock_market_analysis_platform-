@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { TourProvider } from './context/TourContext';
+import { SettingsProvider } from './context/SettingsContext';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Market from './pages/Market';
@@ -10,6 +11,7 @@ import Watchlist from './pages/Watchlist';
 import Transactions from './pages/Transactions';
 import Profile from './pages/Profile';
 import Wallet from './pages/Wallet';
+import Settings from './pages/Settings';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -29,6 +31,7 @@ function AppRoutes() {
       <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
@@ -39,9 +42,11 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider>
-          <TourProvider>
-            <AppRoutes />
-          </TourProvider>
+          <SettingsProvider>
+            <TourProvider>
+              <AppRoutes />
+            </TourProvider>
+          </SettingsProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

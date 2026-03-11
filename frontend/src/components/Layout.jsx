@@ -2,22 +2,24 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTour } from '../context/TourContext';
+import { useSettings } from '../context/SettingsContext';
 import styles from './Layout.module.css';
 
+// Nav item keys map to translation keys
 const NAV_ITEMS = [
-    { to: '/dashboard', icon: '🏠', label: 'Dashboard' },
-    { to: '/market', icon: '📈', label: 'Market' },
-    { to: '/portfolio', icon: '💼', label: 'Portfolio' },
-    { to: '/watchlist', icon: '👁️', label: 'Watchlist' },
-    { to: '/transactions', icon: '📋', label: 'Transactions' },
-    { to: '/wallet', icon: '💰', label: 'Purse' },
-    { to: '/profile', icon: '👤', label: 'Profile' },
+    { to: '/dashboard', icon: '🏠', key: 'nav_dashboard' },
+    { to: '/market', icon: '📈', key: 'nav_market' },
+    { to: '/portfolio', icon: '💼', key: 'nav_portfolio' },
+    { to: '/watchlist', icon: '👁️', key: 'nav_watchlist' },
+    { to: '/transactions', icon: '📋', key: 'nav_transactions' },
+    { to: '/settings', icon: '⚙️', key: 'nav_settings' },
 ];
 
 export default function Layout({ children, pageTitle }) {
     const { user, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const { startTour, hasSteps } = useTour();
+    const { t, currentCurrency, currentLanguage } = useSettings();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -34,13 +36,13 @@ export default function Layout({ children, pageTitle }) {
                     <span className={styles.logoText}>StockPulse</span>
                 </div>
                 <nav className={styles.nav}>
-                    {NAV_ITEMS.map(({ to, icon, label }) => (
+                    {NAV_ITEMS.map(({ to, icon, key }) => (
                         <NavLink
                             key={to} to={to}
                             className={({ isActive }) => `${styles.navItem} ${isActive ? styles.navActive : ''}`}
                         >
                             <span className={styles.navIcon}>{icon}</span>
-                            <span>{label}</span>
+                            <span>{t(key)}</span>
                         </NavLink>
                     ))}
                 </nav>
@@ -60,17 +62,21 @@ export default function Layout({ children, pageTitle }) {
                     <div className={styles.topbarRight}>
                         <div className={styles.liveIndicator}>
                             <span className={styles.pulseDot} />
-                            Live
+                            {t('nav_live')}
                         </div>
                         {hasSteps && (
                             <button className={styles.tourBtn} onClick={startTour} title="Start Product Tour">
                                 ℹ️ Tour
                             </button>
                         )}
+                        {/* Currency + Language indicator */}
+                        <div className={styles.localeIndicator} title={`${currentLanguage.label} · ${currentCurrency.label}`}>
+                            {currentLanguage.flag} {currentCurrency.symbol}
+                        </div>
                         <button className={styles.themeToggleBtn} onClick={toggleTheme} title="Toggle Theme">
                             {theme === 'dark' ? '☀️' : '🌙'}
                         </button>
-                        <span className={styles.topbarUser}>Welcome, {user?.username}</span>
+                        <span className={styles.topbarUser}>{t('nav_welcome')}, {user?.username}</span>
                     </div>
                 </div>
                 <div className={styles.content}>

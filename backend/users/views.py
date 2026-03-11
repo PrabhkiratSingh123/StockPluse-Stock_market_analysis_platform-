@@ -158,6 +158,83 @@ class WalletView(APIView):
         
         return Response({"error": "Invalid action"}, status=400)
 
+class WalletDepositView(APIView):
+    """Deposit money into wallet via UPI or Bank Account payment method."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        amount_val = request.data.get('amount', 0)
+        payment_method_id = request.data.get('payment_method_id')
+
+        try:
+            amount = decimal.Decimal(str(amount_val))
+        except Exception:
+            return Response({"error": "Invalid amount"}, status=400)
+
+        if amount <= 0:
+            return Response({"error": "Amount must be positive"}, status=400)
+
+        # Validate payment method belongs to user
+        if payment_method_id:
+            try:
+                pm = PaymentMethod.objects.get(id=payment_method_id, user=request.user)
+                pm_label = f"{pm.label} ({pm.details})"
+                pm_type = pm.method_type
+            except PaymentMethod.DoesNotExist:
+                return Response({"error": "Payment method not found"}, status=404)
+        else:
+            pm_label = "Wallet Top-up"
+            pm_type = "DIRECT"
+
+        wallet, _ = Wallet.objects.get_or_create(user=request.user)
+        ref_id = f"DEP-{uuid.uuid4().hex[:12].upper()}"
+        wallet.balance += amount
+        wallet.save()
+
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            transaction_type='CREDIT',
+            amount=amount,
+            description=f"Deposited via {pm_type} — {pm_label}",
+            reference_id=ref_id
+        )
+
+        return Response({
+            "balance": str(wallet.balance),
+            "ref": ref_id,
+            "message": f"₹{amount} successfully added to your purse!"
+        }, status=200)
+
+
+class WalletSetLimitView(APIView):
+    """Set or clear the user's spending (debit) limit."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        limit_val = request.data.get('spending_limit', None)
+        wallet, _ = Wallet.objects.get_or_create(user=request.user)
+
+        if limit_val is None or limit_val == '':
+            wallet.spending_limit = None
+            wallet.save()
+            return Response({"message": "Spending limit cleared.", "spending_limit": None})
+
+        try:
+            limit = decimal.Decimal(str(limit_val))
+        except Exception:
+            return Response({"error": "Invalid limit value"}, status=400)
+
+        if limit <= 0:
+            return Response({"error": "Spending limit must be positive"}, status=400)
+
+        wallet.spending_limit = limit
+        wallet.save()
+        return Response({
+            "message": f"Spending limit set to ${limit}",
+            "spending_limit": str(wallet.spending_limit)
+        })
+
+
 class WalletHistoryView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = WalletTransactionSerializer
@@ -175,3 +252,4 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+

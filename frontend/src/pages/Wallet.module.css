@@ -1,9 +1,37 @@
+/* ── Layout ───────────────────────────────────────────────────────────── */
 .container {
-    max-width: 1000px;
+    max-width: 1080px;
     margin: 2rem auto;
-    padding: 0 1rem;
+    padding: 0 1.2rem;
 }
 
+/* ── Loading ──────────────────────────────────────────────────────────── */
+.loadingWrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem 0;
+    gap: 1.5rem;
+    color: #64748b;
+}
+
+.spinner {
+    width: 42px;
+    height: 42px;
+    border: 4px solid rgba(59, 130, 246, 0.2);
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Balance Hero Card ────────────────────────────────────────────────── */
 .balanceCard {
     background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
     padding: 2.5rem;
@@ -12,121 +40,104 @@
     justify-content: space-between;
     align-items: center;
     color: white;
-    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
-    margin-bottom: 2rem;
+    box-shadow: 0 20px 50px rgba(59, 130, 246, 0.3);
+    margin-bottom: 1.5rem;
 }
 
 .balanceInfo .label {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 700;
     opacity: 0.8;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
 }
 
 .balanceInfo .value {
     font-size: 3rem;
     font-weight: 800;
-    margin: 0.5rem 0 0;
+    margin: 0.4rem 0 0.6rem;
 }
 
-.purseIcon {
-    font-size: 4rem;
-    opacity: 0.3;
-}
-
-.mainGrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin-bottom: 2rem;
-}
-
-.card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
+.limitBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
-    padding: 2rem;
-}
-
-.card h3 {
-    margin-top: 0;
-    font-size: 1.2rem;
-    color: var(--text-primary);
-}
-
-.hint {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 2rem;
-}
-
-.inputGroup {
-    margin-bottom: 1.5rem;
-}
-
-.inputGroup label {
-    display: block;
-    font-size: 0.8rem;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.82rem;
     font-weight: 600;
-    color: #64748b;
-    margin-bottom: 0.5rem;
+    backdrop-filter: blur(8px);
 }
 
-.inputGroup input,
-.inputGroup select {
-    width: 100%;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    color: var(--text-primary);
-    font-size: 1.1rem;
-    font-weight: 700;
-    font-family: inherit;
-}
-
-.inputGroup select option {
-    background: #111827;
-}
-
-.actionBtns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+.balanceActions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
     gap: 1rem;
 }
 
-.creditBtn,
-.debitBtn {
-    padding: 1rem;
-    border: none;
-    border-radius: 12px;
+.limitBtn {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: white;
+    padding: 0.5rem 1.1rem;
+    border-radius: 20px;
+    font-size: 0.82rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
+    backdrop-filter: blur(6px);
+    white-space: nowrap;
 }
 
-.creditBtn {
-    background: #10b981;
-    color: white;
+.limitBtn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
 }
 
-.debitBtn {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
+.purseIcon {
+    font-size: 3.5rem;
+    opacity: 0.25;
 }
 
-.creditBtn:hover {
-    background: #059669;
-    transform: translateY(-2px);
+/* ── Spending Limit Alert ─────────────────────────────────────────────── */
+.limitAlert {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08));
+    border: 1.5px solid rgba(239, 68, 68, 0.5);
+    border-left: 4px solid #ef4444;
+    border-radius: 14px;
+    padding: 1rem 1.4rem;
+    color: #fca5a5;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    animation: alertPulse 0.4s ease-out;
 }
 
-.debitBtn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
+@keyframes alertPulse {
+    from {
+        transform: scale(0.98);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
-/* History Section */
+/* ── Main Grid ───────────────────────────────────────────────────────── */
+.mainGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.8rem;
+    margin-bottom: 2rem;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────── */
+.card,
 .historyCard {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -134,10 +145,274 @@
     padding: 2rem;
 }
 
+.card h3,
+.historyCard h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.15rem;
+    color: var(--text-primary);
+}
+
+.hint {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    margin-top: 0;
+    margin-bottom: 1.8rem;
+    line-height: 1.5;
+}
+
+/* ── Input Groups ────────────────────────────────────────────────────── */
+.inputGroup {
+    margin-bottom: 1.4rem;
+}
+
+.inputGroup label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.inputGroup input,
+.inputGroup select {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.inputGroup input:focus,
+.inputGroup select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* ── Amount Input with rupee prefix ──────────────────────────────────── */
+.amountInputWrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.rupee {
+    position: absolute;
+    left: 1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #64748b;
+    pointer-events: none;
+}
+
+.amountInputWrap input {
+    padding-left: 2.2rem !important;
+}
+
+/* ── Payment Method List ─────────────────────────────────────────────── */
+.noPMHint {
+    color: #64748b;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.addPMLink {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.pmList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.pmOption {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.85rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.pmOption input[type="radio"] {
+    display: none;
+}
+
+.pmOption:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.pmSelected {
+    border-color: #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.08) !important;
+}
+
+.pmIcon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.pmText {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.pmText strong {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pmText small {
+    font-size: 0.75rem;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.defaultTag {
+    font-size: 0.65rem;
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    padding: 0.15rem 0.5rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.deletePM {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 0.9rem;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    padding: 4px 6px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.deletePM:hover {
+    opacity: 1;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.addMoreBtn {
+    width: 100%;
+    border: 1.5px dashed rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.05);
+    color: #3b82f6;
+    border-radius: 12px;
+    padding: 0.7rem;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.addMoreBtn:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────── */
+.creditBtn {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+}
+
+.creditBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+.creditBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Status Messages ─────────────────────────────────────────────────── */
+.msgBox {
+    margin-top: 1rem;
+    padding: 0.9rem 1.2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+    animation: alertPulse 0.3s ease;
+}
+
+.msgSuccess {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+
+.msgError {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+/* ── History Section ─────────────────────────────────────────────────── */
 .historyList {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.7rem;
     margin-top: 1.5rem;
 }
 
@@ -145,69 +420,69 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 1.2rem;
-    background: rgba(255, 255, 255, 0.02);
+    padding: 0.9rem 1.1rem;
+    background: rgba(255, 255, 255, 0.025);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    transition: transform 0.2s;
+    transition: transform 0.2s, background 0.2s;
 }
 
 .historyRow:hover {
-    transform: translateX(5px);
-    background: rgba(255, 255, 255, 0.04);
+    transform: translateX(4px);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .txMain {
     display: flex;
     align-items: center;
-    gap: 1.2rem;
+    gap: 1rem;
 }
 
 .txTypeIcon {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
 }
 
-.txTypeIcon.CREDIT {
+.CREDIT {
     background: rgba(16, 185, 129, 0.15);
 }
 
-.txTypeIcon.DEBIT {
+.DEBIT {
     background: rgba(239, 68, 68, 0.15);
 }
 
-.txTypeIcon.TRADE_BUY {
+.TRADE_BUY {
     background: rgba(59, 130, 246, 0.15);
 }
 
-.txTypeIcon.TRADE_SELL {
+.TRADE_SELL {
     background: rgba(245, 158, 11, 0.15);
 }
 
 .txInfo {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: 0.15rem;
 }
 
 .txDesc {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 700;
     color: var(--text-primary);
 }
 
 .txDate {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--text-secondary);
 }
 
 .txAmount {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 800;
 }
 
@@ -219,15 +494,19 @@
     color: #ef4444;
 }
 
-/* Modal Styles */
+.empty {
+    text-align: center;
+    padding: 2.5rem;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+/* ── Modal Overlay ───────────────────────────────────────────────────── */
 .modalOverlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(8px);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(10px);
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -236,19 +515,20 @@
 }
 
 .modal {
-    background: #111827;
+    background: #0f172a;
     width: 100%;
-    max-width: 450px;
+    max-width: 460px;
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
-    animation: modalIn 0.3s ease-out;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
+    animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
 }
 
 @keyframes modalIn {
     from {
         opacity: 0;
-        transform: scale(0.95) translateY(20px);
+        transform: scale(0.92) translateY(24px);
     }
 
     to {
@@ -258,43 +538,60 @@
 }
 
 .modalHeader {
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.4rem 1.8rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
+.modalHeader h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: white;
+}
+
 .closeX {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.08);
     border: none;
     color: white;
-    font-size: 1.5rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    font-size: 1rem;
     cursor: pointer;
-    opacity: 0.5;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.closeX:hover {
+    background: rgba(255, 255, 255, 0.18);
 }
 
 .modalBody {
-    padding: 2rem;
+    padding: 1.8rem;
 }
 
+/* Checkout Modal specifics */
 .mockMerchant {
     display: flex;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .mockMerchant img {
-    width: 50px;
-    height: 50px;
+    width: 46px;
+    height: 46px;
     border-radius: 12px;
-    object-fit: cover;
 }
 
 .mockMerchant h4 {
     margin: 0;
     color: white;
+    font-size: 1rem;
 }
 
 .mockMerchant p {
@@ -305,51 +602,67 @@
 
 .amountDisplay {
     text-align: center;
-    padding: 1.5rem;
-    background: rgba(255, 255, 255, 0.02);
+    padding: 1.4rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .amountDisplay span {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #64748b;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .amountDisplay h2 {
-    margin: 0.5rem 0 0;
+    margin: 0.4rem 0 0;
     color: #3b82f6;
-    font-size: 2.5rem;
+    font-size: 2.4rem;
     font-weight: 800;
 }
 
-.paymentMethods {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    margin-bottom: 2rem;
-}
-
-.methodOption {
+.checkoutPMInfo {
     display: flex;
     align-items: center;
     gap: 1rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
     padding: 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    cursor: pointer;
-    border: 1px solid transparent;
+    margin-bottom: 1.5rem;
 }
 
-.methodOption:has(input:checked) {
-    border-color: #3b82f6;
-    background: rgba(59, 130, 246, 0.1);
+.checkoutPMIcon {
+    font-size: 1.8rem;
+}
+
+.checkoutPMInfo div {
+    flex: 1;
+}
+
+.checkoutPMInfo strong {
+    font-size: 0.9rem;
+    color: white;
+    display: block;
+}
+
+.checkoutPMInfo p {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin: 0.2rem 0 0;
+}
+
+.checkMark {
+    font-size: 1.3rem;
 }
 
 .payNowBtn {
     width: 100%;
-    padding: 1.2rem;
-    background: #3b82f6;
+    padding: 1.1rem;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
     color: white;
     border: none;
     border-radius: 16px;
@@ -357,27 +670,147 @@
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.2s;
+    font-family: inherit;
+    letter-spacing: 0.02em;
 }
 
-.payNowBtn:hover {
-    background: #2563eb;
+.payNowBtn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
 }
 
-.secureText {
-    text-align: center;
-    font-size: 0.7rem;
-    color: #475569;
-    margin-top: 1rem;
+.payNowBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
+.secureText {
+    text-align: center;
+    font-size: 0.68rem;
+    color: #475569;
+    margin-top: 1rem;
+    margin-bottom: 0;
+}
+
+.processingRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+}
+
+.dotSpinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+}
+
+/* Add PM Modal specifics */
+.typeTabs {
+    display: flex;
+    gap: 0.7rem;
+    margin-bottom: 1.5rem;
+}
+
+.typeTab {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.typeTab:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.typeTabActive {
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: white !important;
+}
+
+.bankNote {
+    font-size: 0.78rem;
+    color: #64748b;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    margin-bottom: 0.5rem;
+    margin-top: -0.8rem;
+}
+
+/* Set Limit Modal specifics */
+.currentLimit {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    color: #6ee7b7;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.limitModalBtns {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.clearLimitBtn {
+    width: 100%;
+    padding: 0.9rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1.5px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.clearLimitBtn:hover {
+    background: rgba(239, 68, 68, 0.18);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 800px) {
     .mainGrid {
         grid-template-columns: 1fr;
     }
 
-    .balanceCard .value {
-        font-size: 2rem;
+    .balanceInfo .value {
+        font-size: 2.2rem;
+    }
+
+    .balanceCard {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.2rem;
+    }
+
+    .balanceActions {
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
     }
 }

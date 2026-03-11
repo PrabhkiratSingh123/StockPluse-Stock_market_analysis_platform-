@@ -1,0 +1,718 @@
+/* ── Page Layout ─────────────────────────────────────────────────────────── */
+.container {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 2rem;
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 0 1.2rem;
+    align-items: start;
+}
+
+/* ── Left Tab Sidebar ────────────────────────────────────────────────────── */
+.tabSidebar {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    overflow: hidden;
+    position: sticky;
+    top: 1.5rem;
+}
+
+.tabSidebarHeader {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 1.2rem;
+    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.08));
+}
+
+.avatarCircle {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.avatarName {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.avatarSub {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.1rem;
+}
+
+.tabNav {
+    padding: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.tabBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: #94a3b8;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.tabBtn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+}
+
+.tabActive {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.12)) !important;
+    color: #93c5fd !important;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.tabIcon {
+    font-size: 1.1rem;
+    width: 22px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.tabArrow {
+    margin-left: auto;
+    font-size: 1.2rem;
+    opacity: 0.6;
+}
+
+/* ── Right Content ───────────────────────────────────────────────────────── */
+.tabContent {
+    min-height: 500px;
+}
+
+.section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2rem;
+    animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sectionHeader {
+    margin-bottom: 2rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sectionHeader h2 {
+    margin: 0 0 0.4rem;
+    font-size: 1.3rem;
+    color: var(--text-primary);
+}
+
+.sectionHeader p {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #64748b;
+}
+
+/* ── Form Inputs ─────────────────────────────────────────────────────────── */
+.formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    margin-bottom: 1.2rem;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-bottom: 1.2rem;
+}
+
+.inputGroup label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.inputGroup input,
+.inputGroup textarea,
+.inputGroup select {
+    padding: 0.85rem 1rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    resize: vertical;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.inputGroup input:focus,
+.inputGroup textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+}
+
+/* ── KYC Banner ──────────────────────────────────────────────────────────── */
+.kycBanner {
+    padding: 0.85rem 1.2rem;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.kycOk {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    display: block;
+}
+
+.kycPending {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    display: block;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.saveBtn {
+    padding: 0.85rem 1.8rem;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.saveBtn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+}
+
+.saveBtn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.dangerBtn {
+    padding: 0.85rem 1.4rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1.5px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dangerBtn:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* ── Status Messages ─────────────────────────────────────────────────────── */
+.msgBox {
+    padding: 0.85rem 1.2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    margin-bottom: 1.2rem;
+    animation: fadeIn 0.3s;
+}
+
+.success {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+
+.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+/* ── Loading ─────────────────────────────────────────────────────────────── */
+.loadingRow {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: #64748b;
+    padding: 2rem 0;
+}
+
+.spinner {
+    width: 22px;
+    height: 22px;
+    border: 3px solid rgba(59, 130, 246, 0.2);
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Wallet Tab — Balance Glance ─────────────────────────────────────────── */
+.balanceGlance {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.07));
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+}
+
+.balGlanceItem {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    text-align: center;
+}
+
+.balGlanceItem span {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.balGlanceValue {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.limitOn {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #10b981;
+}
+
+.limitOff {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+.balGlanceDivider {
+    width: 1px;
+    height: 50px;
+    background: var(--border-color);
+}
+
+/* ── Subsection ──────────────────────────────────────────────────────────── */
+.subsection {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.subsectionTitle {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem;
+}
+
+.subsectionHint {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0 0 1.2rem;
+    line-height: 1.5;
+}
+
+/* ── Limit Input Row ─────────────────────────────────────────────────────── */
+.limitForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.inputGroupRow {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.inputWithPrefix {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.prefix {
+    position: absolute;
+    left: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #64748b;
+    pointer-events: none;
+}
+
+.inputWithPrefix input {
+    padding: 0.85rem 1rem 0.85rem 2.2rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: border-color 0.2s;
+    width: 180px;
+}
+
+.inputWithPrefix input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+/* ── Payment Method Cards ────────────────────────────────────────────────── */
+.pmCards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.pmCard {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1.2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.pmCardIcon {
+    font-size: 1.4rem;
+}
+
+.pmCardInfo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.pmCardInfo strong {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.pmCardInfo small {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.defaultPill {
+    font-size: 0.68rem;
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    padding: 0.15rem 0.55rem;
+    font-weight: 700;
+}
+
+.emptyState {
+    color: #64748b;
+    font-size: 0.9rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed var(--border-color);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.link {
+    color: #3b82f6;
+    text-decoration: underline;
+}
+
+/* ── Option Grid (Language / Currency) ───────────────────────────────────── */
+.optionGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.optionCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.2rem 0.8rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid var(--border-color);
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    position: relative;
+    color: var(--text-primary);
+}
+
+.optionCard:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.optionSelected {
+    border-color: #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+.optionFlag {
+    font-size: 2rem;
+}
+
+.optionLabel {
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.optionSub {
+    font-size: 0.72rem;
+    color: #64748b;
+    text-align: center;
+}
+
+.optionSymbol {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #3b82f6;
+}
+
+.optionCurrencyInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.optionCheckmark {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.6rem;
+    font-size: 0.75rem;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.15);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+/* ── Current Setting Banner ──────────────────────────────────────────────── */
+.currentSetting {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.88rem;
+    color: #64748b;
+    padding: 0.85rem 1.2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.currentSetting strong {
+    color: var(--text-primary);
+}
+
+.currentSetting code {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+    padding: 0.1rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.pill {
+    margin-left: auto;
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 8px;
+    padding: 0.15rem 0.7rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+/* ── Theme Cards ─────────────────────────────────────────────────────────── */
+.themeCards {
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+}
+
+.themeCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid var(--border-color);
+    border-radius: 16px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    transition: all 0.2s;
+    min-width: 160px;
+    position: relative;
+}
+
+.themeCard:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.themeSelected {
+    border-color: #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.08) !important;
+}
+
+.themePreview {
+    width: 140px;
+    height: 80px;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.previewSidebar {
+    width: 30%;
+    background: #1e293b;
+    flex-shrink: 0;
+}
+
+.previewContent {
+    flex: 1;
+    background: #0f172a;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.previewBar {
+    height: 10px;
+    width: 80%;
+    background: #334155;
+    border-radius: 4px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 800px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+
+    .tabSidebar {
+        position: static;
+    }
+
+    .tabNav {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .tabBtn {
+        flex: 1;
+        min-width: 120px;
+        justify-content: center;
+    }
+
+    .tabArrow {
+        display: none;
+    }
+
+    .formGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .balanceGlance {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .balGlanceDivider {
+        width: 100%;
+        height: 1px;
+    }
+}

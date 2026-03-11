@@ -36,7 +36,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class WalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet
-        fields = ['balance', 'updated_at']
+        fields = ['balance', 'spending_limit', 'updated_at']
         read_only_fields = ['balance', 'updated_at']
 
 class PaymentMethodSerializer(serializers.ModelSerializer):

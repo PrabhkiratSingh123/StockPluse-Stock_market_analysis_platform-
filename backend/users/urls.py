@@ -1,5 +1,7 @@
 from django.urls import path
-from .views import RegisterView, RegisterViewdetail, PasswordResetRequestView, PasswordResetConfirmView, LogoutView, ProfileView, WalletView, WalletHistoryView, PaymentMethodViewSet
+from .views import (RegisterView, RegisterViewdetail, PasswordResetRequestView, PasswordResetConfirmView,
+                    LogoutView, ProfileView, WalletView, WalletHistoryView, WalletDepositView, WalletSetLimitView,
+                    PaymentMethodViewSet)
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
@@ -14,4 +16,6 @@ urlpatterns = [
     path('profile/', ProfileView.as_view(), name='profile'),
     path('wallet/', WalletView.as_view(), name='wallet'),
     path('wallet/history/', WalletHistoryView.as_view(), name='wallet_history'),
+    path('wallet/deposit/', WalletDepositView.as_view(), name='wallet_deposit'),
+    path('wallet/set-limit/', WalletSetLimitView.as_view(), name='wallet_set_limit'),
 ] + router.urls

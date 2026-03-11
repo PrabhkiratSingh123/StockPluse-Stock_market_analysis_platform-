@@ -2,20 +2,15 @@ import { useEffect, useState, useCallback } from 'react';
 import Layout from '../components/Layout';
 import api from '../api/axios';
 import { useTour } from '../context/TourContext';
+import { useSettings } from '../context/SettingsContext';
 import styles from './Dashboard.module.css';
 import Chart from 'react-apexcharts';
 
 const fmt = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtDate = (iso) => new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-const fmtCompact = (n) => {
-    if (!n) return '—';
-    if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
-    if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-    if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`;
-    return `$${fmt(n)}`;
-};
 
 export default function Dashboard() {
+    const { t, formatCurrency, formatCurrencyCompact, currentCurrency } = useSettings();
     const [summary, setSummary] = useState(null);
     const [holdings, setHoldings] = useState([]);
     const [allocation, setAllocation] = useState([]);
@@ -24,8 +19,9 @@ export default function Dashboard() {
     const [perfPeriod, setPerfPeriod] = useState('1M');
     const [perfData, setPerfData] = useState({ labels: [], values: [] });
     const [perfLoading, setPerfLoading] = useState(false);
-    const [hoverData, setHoverData] = useState(null); // { value, label, pL, pLPct }
+    const [hoverData, setHoverData] = useState(null);
     const { markPageReady } = useTour();
+    const sym = currentCurrency.symbol;
 
     const load = useCallback(async () => {
         try {
@@ -150,7 +146,7 @@ export default function Dashboard() {
         yaxis: {
             labels: {
                 style: { colors: '#64748b', fontSize: '11px' },
-                formatter: (v) => `$${v?.toFixed(0)}`,
+                formatter: (v) => `${sym}${v?.toFixed(0)}`,
             },
         },
         tooltip: {
@@ -169,7 +165,7 @@ export default function Dashboard() {
                 }
             },
             y: {
-                formatter: (v) => `$${fmt(v)}`,
+                formatter: (v) => formatCurrency(v),
                 title: { formatter: () => '' }
             },
             marker: { show: false }
@@ -213,11 +209,11 @@ export default function Dashboard() {
                         total: {
                             show: true,
                             showAlways: true,
-                            label: 'EQUITY',
+                            label: t('equity'),
                             fontSize: '11px',
                             fontWeight: 600,
                             color: '#64748b',
-                            formatter: () => `${allocation.length} Stocks`,
+                            formatter: () => `${allocation.length} ${t('stocks')}`,
                         }
                     }
                 }
@@ -235,7 +231,7 @@ export default function Dashboard() {
         },
         tooltip: {
             theme: 'dark',
-            y: { formatter: (v) => `$${fmt(v)}` },
+            y: { formatter: (v) => formatCurrency(v) },
         },
         dataLabels: { enabled: false },
     };
@@ -259,15 +255,15 @@ export default function Dashboard() {
             {/* Stat Cards */}
             <div className={styles.statsGrid} data-tour="dash-stats">
                 {[
-                    { icon: '💰', label: 'Total Invested', value: summary ? `$${fmt(summary.total_investment)}` : '—', accent: '#3b82f6' },
+                    { icon: '💰', label: t('total_invested'), value: summary ? formatCurrency(summary.total_investment) : '—', accent: '#3b82f6' },
                     {
                         icon: '📊',
-                        label: hoverData ? `Value on ${xLabelFormatter(hoverData.label)}` : 'Current Value',
-                        value: hoverData ? `$${fmt(hoverData.value)}` : (summary ? `$${fmt(summary.total_current_value)}` : '—'),
+                        label: hoverData ? `${t('value_on')} ${xLabelFormatter(hoverData.label)}` : t('current_value'),
+                        value: hoverData ? formatCurrency(hoverData.value) : (summary ? formatCurrency(summary.total_current_value) : '—'),
                         accent: '#8b5cf6',
                         active: !!hoverData
                     },
-                    { icon: '🗂️', label: 'Stocks Held', value: summary ? summary.stock_count : '—', accent: '#f59e0b' },
+                    { icon: '🗂️', label: t('stocks_held'), value: summary ? summary.stock_count : '—', accent: '#f59e0b' },
                 ].map(({ icon, label, value, accent, active }) => (
                     <div key={label} className={`${styles.statCard} ${active ? styles.statCardActive : ''}`} style={{ borderTop: `3px solid ${accent}` }}>
                         <span className={styles.statIcon}>{icon}</span>
@@ -285,11 +281,11 @@ export default function Dashboard() {
                 >
                     <span className={styles.statIcon}>🎯</span>
                     <div>
-                        <div className={styles.statLabel}>{hoverData ? 'Gain on this date' : 'Total P&L'}</div>
+                        <div className={styles.statLabel}>{hoverData ? t('gain_on_date') : t('total_pl')}</div>
                         <div className={`${styles.statValue} ${hoverData ? plClass(hoverData.pL) : (summary ? plClass(summary.total_p_l) : '')}`}>
                             {hoverData
-                                ? `${hoverData.pL >= 0 ? '+' : ''}$${fmt(hoverData.pL)} (${hoverData.pLPct.toFixed(2)}%)`
-                                : (summary ? `${summary.total_p_l >= 0 ? '+' : ''}$${fmt(summary.total_p_l)} (${summary.total_p_l_pct.toFixed(2)}%)` : '—')
+                                ? `${hoverData.pL >= 0 ? '+' : ''}${formatCurrency(hoverData.pL)} (${hoverData.pLPct.toFixed(2)}%)`
+                                : (summary ? `${summary.total_p_l >= 0 ? '+' : ''}${formatCurrency(summary.total_p_l)} (${summary.total_p_l_pct.toFixed(2)}%)` : '—')
                             }
                         </div>
                     </div>
@@ -300,7 +296,7 @@ export default function Dashboard() {
                 {/* Portfolio Performance Chart */}
                 <div className={styles.card + ' ' + styles.chartCard} data-tour="dash-performance">
                     <div className={styles.cardHeader}>
-                        <h3>Portfolio Performance</h3>
+                        <h3>{t('portfolio_performance')}</h3>
                         <div className={styles.periodTabs}>
                             {['1D', '1W', '1M', '1Y'].map(p => (
                                 <button key={p}
@@ -316,19 +312,19 @@ export default function Dashboard() {
                         ) : perfData.values.length > 0 ? (
                             <Chart options={areaChartOptions} series={areaChartSeries} type="area" height={280} />
                         ) : (
-                            <Empty icon="📈" text="Add stocks to see performance" />
+                            <Empty icon="📈" text={t('add_stocks')} />
                         )}
                     </div>
                 </div>
 
                 {/* Asset Allocation Donut */}
                 <div className={styles.card} data-tour="dash-allocation">
-                    <div className={styles.cardHeader}><h3>Asset Allocation</h3></div>
+                    <div className={styles.cardHeader}><h3>{t('asset_allocation')}</h3></div>
                     <div className={styles.cardBody} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 280 }}>
                         {allocation.length > 0 ? (
                             <Chart options={donutOptions} series={donutSeries} type="donut" height={280} width={320} />
                         ) : (
-                            <Empty icon="🥧" text="No stocks in portfolio" />
+                            <Empty icon="🥧" text={t('no_stocks_portfolio')} />
                         )}
                     </div>
                 </div>
@@ -338,8 +334,8 @@ export default function Dashboard() {
             <div className={styles.mainGrid}>
                 <div className={styles.card} data-tour="dash-holdings">
                     <div className={styles.cardHeader}>
-                        <h3>Holdings Overview</h3>
-                        <button className={styles.refreshBtn} onClick={load}>↻ Refresh</button>
+                        <h3>{t('holdings_overview')}</h3>
+                        <button className={styles.refreshBtn} onClick={load}>{t('refresh')}</button>
                     </div>
                     <div className={styles.cardBody}>
                         {loading ? <div className={styles.shimmer} /> :
@@ -363,34 +359,34 @@ export default function Dashboard() {
                                         </div>
                                     </div>
                                     <div className={styles.holdingRight}>
-                                        <span className={styles.holdingPrice}>${fmt(h.live_price)}</span>
+                                        <span className={styles.holdingPrice}>{formatCurrency(h.live_price)}</span>
                                         <span className={plClass(h.p_l)}>
-                                            {h.p_l >= 0 ? '+' : ''}${fmt(h.p_l)} ({h.p_l_pct >= 0 ? '+' : ''}{h.p_l_pct.toFixed(2)}%)
+                                            {h.p_l >= 0 ? '+' : ''}{formatCurrency(h.p_l)} ({h.p_l_pct >= 0 ? '+' : ''}{h.p_l_pct.toFixed(2)}%)
                                         </span>
                                     </div>
                                 </div>
-                            )) : <Empty icon="💼" text="No holdings. Start trading!" />
+                            )) : <Empty icon="💼" text={t('no_holdings')} />
                         }
                     </div>
                 </div>
 
                 {/* Market Sentiment */}
                 <div className={styles.card} data-tour="dash-sentiment">
-                    <div className={styles.cardHeader}><h3>Market Sentiment</h3></div>
+                    <div className={styles.cardHeader}><h3>{t('market_sentiment')}</h3></div>
                     <div className={styles.cardBody}>
-                        {txList.length ? txList.map((t, i) => (
+                        {txList.length ? txList.map((tx, i) => (
                             <div key={i} className={styles.txRow}>
-                                <span className={`${styles.txBadge} ${t.transaction_type === 'BUY' ? styles.buy : styles.sell}`}>{t.transaction_type}</span>
-                                <span className={styles.txSymbol}>{t.stock_symbol}</span>
-                                <span className={styles.txInfo}>{t.quantity} shares</span>
-                                <span className={styles.txPrice}>${fmt(t.price)}</span>
-                                <span className={styles.txDate}>{fmtDate(t.timestamp)}</span>
+                                <span className={`${styles.txBadge} ${tx.transaction_type === 'BUY' ? styles.buy : styles.sell}`}>{tx.transaction_type}</span>
+                                <span className={styles.txSymbol}>{tx.stock_symbol}</span>
+                                <span className={styles.txInfo}>{tx.quantity} {t('shares')}</span>
+                                <span className={styles.txPrice}>{formatCurrency(tx.price)}</span>
+                                <span className={styles.txDate}>{fmtDate(tx.timestamp)}</span>
                             </div>
-                        )) : <Empty icon="📋" text="No transactions yet." />}
+                        )) : <Empty icon="📋" text={t('no_transactions')} />}
 
                         {/* Fear & Greed Gauge */}
                         <div className={styles.gaugeCard}>
-                            <div className={styles.gaugeLabel}>Fear & Greed Index</div>
+                            <div className={styles.gaugeLabel}>{t('fear_greed_index')}</div>
                             <div className={styles.gauge}>
                                 <div className={styles.gaugeArc}>
                                     <div className={styles.gaugeNeedle} style={{ transform: `rotate(${fearGreedAngle}deg)` }} />

@@ -250,3 +250,17 @@
     padding: 2rem;
     flex: 1;
 }
+
+/* ── Locale Indicator (flag + currency symbol in topbar) ── */
+.localeIndicator {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    padding: 0.3rem 0.65rem;
+    border-radius: 8px;
+    letter-spacing: 0.02em;
+    cursor: default;
+    user-select: none;
+}
