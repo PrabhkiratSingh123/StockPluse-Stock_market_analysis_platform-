@@ -16,5 +16,4 @@ $env:OMP_NUM_THREADS      = "1"
 Write-Host "✅ Environment set. Starting Django..." -ForegroundColor Green
 Write-Host "   → http://127.0.0.1:8000" -ForegroundColor Cyan
 Write-Host ""
-
 & $VENV_PYTHON $MANAGE runserver
