@@ -251,7 +251,7 @@ export default function Dashboard() {
     const fearGreedLabel = avgPl > 5 ? 'GREEDY' : avgPl > 0 ? 'NEUTRAL' : avgPl > -5 ? 'CAUTIOUS' : 'FEARFUL';
 
     return (
-        <Layout pageTitle="Dashboard">
+        <Layout pageTitle={t('nav_dashboard')}>
             {/* Stat Cards */}
             <div className={styles.statsGrid} data-tour="dash-stats">
                 {[
@@ -344,7 +344,7 @@ export default function Dashboard() {
                                     <div className={styles.holdingLeft}>
                                         <div className={styles.holdingSymbolWrap}>
                                             <span className={styles.hSymbol}>{h.symbol}</span>
-                                            <span className={styles.hQty}>{h.quantity} shares</span>
+                                            <span className={styles.hQty}>{h.quantity} {t('shares')}</span>
                                         </div>
                                         <div className={styles.sparkWrap}>
                                             {h.sparkline && h.sparkline.length > 2 && (

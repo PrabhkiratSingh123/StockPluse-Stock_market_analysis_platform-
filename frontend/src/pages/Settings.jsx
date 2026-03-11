@@ -210,8 +210,8 @@ export default function Settings() {
                     {activeTab === 'purse' && (
                         <section className={styles.section}>
                             <div className={styles.sectionHeader}>
-                                <h2>💰 Purse & Wallet Settings</h2>
-                                <p>Manage your wallet balance and set spending controls.</p>
+                                <h2>💰 {t('purse_wallet_settings')}</h2>
+                                <p>{t('purse_wallet_desc')}</p>
                             </div>
 
                             {/* Balance at a glance */}
@@ -352,15 +352,15 @@ export default function Settings() {
                             <div className={styles.ratesPanel}>
                                 <div className={styles.ratesPanelHeader}>
                                     <span>
-                                        {ratesLoading ? '⏳ Fetching live rates…' : ratesError ? '⚠️ Using offline rates' : `🟢 Live rates · ${ratesDate}`}
+                                        {ratesLoading ? t('fetching_live_rates') : ratesError ? t('using_offline_rates') : `${t('live_rates_active')} · ${ratesDate}`}
                                     </span>
                                     <button
                                         className={styles.refreshRateBtn}
                                         onClick={refreshRates}
                                         disabled={ratesLoading}
-                                        title="Refresh exchange rates"
+                                        title={t('refresh_rates_title')}
                                     >
-                                        {ratesLoading ? '⏳' : '↻ Refresh'}
+                                        {ratesLoading ? '⏳' : `↻ ${t('refresh_btn_text')}`}
                                     </button>
                                 </div>
 
@@ -389,7 +389,7 @@ export default function Settings() {
                                         );
                                     })}
                                 </div>
-                                <p className={styles.ratesNote}>💡 1 USD = above rates · Powered by frankfurter.app</p>
+                                <p className={styles.ratesNote}>💡 {t('rates_powered_by')}</p>
                             </div>
 
                             <div className={styles.currentSetting}>

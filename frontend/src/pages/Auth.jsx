@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import styles from './Auth.module.css';
 import api from '../api/axios';
+import { useSettings } from '../context/SettingsContext';
 
 export default function Auth() {
     const [mode, setMode] = useState('login'); // 'login' or 'register'
@@ -37,7 +38,7 @@ export default function Auth() {
             navigate('/dashboard');
         } catch (err) {
             const d = err.response?.data;
-            setError(d?.detail || d?.username?.[0] || d?.password?.[0] || 'Something went wrong.');
+            setError(d?.detail || d?.username?.[0] || d?.password?.[0] || t('auth_error_generic'));
         } finally {
             setLoading(false);
         }
@@ -47,13 +48,13 @@ export default function Auth() {
         e.preventDefault();
         clearMessages(); setLoading(true);
         try {
-            if (!regUsername || !regEmail || !regPassword) { setError('All fields are required.'); return; }
+            if (!regUsername || !regEmail || !regPassword) { setError(t('fields_required')); return; }
             await register(regUsername, regEmail, regPassword);
             await login(regUsername, regPassword);
             navigate('/dashboard');
         } catch (err) {
             const d = err.response?.data;
-            setError(d?.detail || d?.username?.[0] || d?.email?.[0] || d?.password?.[0] || 'Something went wrong.');
+            setError(d?.detail || d?.username?.[0] || d?.email?.[0] || d?.password?.[0] || t('auth_error_generic'));
         } finally {
             setLoading(false);
         }
@@ -65,10 +66,10 @@ export default function Auth() {
         try {
             await api.post('/users/password-reset/request/', { email: forgotEmail });
             setLoginState('forgot_confirm');
-            setSuccessMsg('If an account exists, an OTP was sent to your email.');
+            setSuccessMsg(t('otp_sent_hint'));
         } catch (err) {
             const d = err.response?.data;
-            setError(d?.detail || 'Failed to request OTP.');
+            setError(d?.detail || t('otp_request_failed'));
         } finally {
             setLoading(false);
         }
@@ -84,12 +85,12 @@ export default function Auth() {
                 new_password: forgotNewPassword
             });
             setLoginState('login');
-            setSuccessMsg('Password successfully reset! Please sign in.');
+            setSuccessMsg(t('password_reset_success'));
             setForgotOtp('');
             setForgotNewPassword('');
         } catch (err) {
             const d = err.response?.data;
-            setError(d?.detail || 'Failed to reset password. Check OTP.');
+            setError(d?.detail || t('password_reset_failed'));
         } finally {
             setLoading(false);
         }
@@ -112,13 +113,13 @@ export default function Auth() {
                             <span className={styles.logoIcon}><img src="peg.gif" alt="" /></span>
                             <span className={styles.logoText}>StockPulse</span>
                         </div>
-                        <h1 className={styles.title}>Create Account</h1>
+                        <h1 className={styles.title}>{t('create_account')}</h1>
                         {error && mode === 'register' && <div className={styles.error}>{error}</div>}
-                        <input type="text" value={regUsername} onChange={e => setRegUsername(e.target.value)} placeholder="Username" required />
-                        <input type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)} placeholder="Email" required />
-                        <input type="password" value={regPassword} onChange={e => setRegPassword(e.target.value)} placeholder="Password" required />
+                        <input type="text" value={regUsername} onChange={e => setRegUsername(e.target.value)} placeholder={t('username')} required />
+                        <input type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)} placeholder={t('email')} required />
+                        <input type="password" value={regPassword} onChange={e => setRegPassword(e.target.value)} placeholder={t('password')} required />
                         <button type="submit" className={styles.btnPrimary} disabled={loading}>
-                            {loading ? '⏳...' : 'Sign Up'}
+                            {loading ? '⏳...' : t('sign_up')}
                         </button>
                     </form>
                 </div>
@@ -131,42 +132,42 @@ export default function Auth() {
                                 <span className={styles.logoIcon}><img src="analysis-rsi.gif" alt="" /></span>
                                 <span className={styles.logoText}>StockPulse</span>
                             </div>
-                            <h1 className={styles.title}>Sign In</h1>
+                            <h1 className={styles.title}>{t('sign_in')}</h1>
                             {successMsg && mode === 'login' && <div className={styles.success}>{successMsg}</div>}
                             {error && mode === 'login' && <div className={styles.error}>{error}</div>}
-                            <input type="text" value={loginUsername} onChange={e => setLoginUsername(e.target.value)} placeholder="Username" required />
-                            <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Password" required />
-                            <a href="#" className={styles.forgotPass} onClick={(e) => { e.preventDefault(); setLoginState('forgot_request'); clearMessages(); }}>Forget Your Password?</a>
+                            <input type="text" value={loginUsername} onChange={e => setLoginUsername(e.target.value)} placeholder={t('username')} required />
+                            <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder={t('password')} required />
+                            <a href="#" className={styles.forgotPass} onClick={(e) => { e.preventDefault(); setLoginState('forgot_request'); clearMessages(); }}>{t('forgot_password_q')}</a>
                             <button type="submit" className={styles.btnPrimary} disabled={loading}>
-                                {loading ? '⏳...' : 'Sign In'}
+                                {loading ? '⏳...' : t('sign_in')}
                             </button>
                         </form>
                     )}
 
                     {loginState === 'forgot_request' && (
                         <form onSubmit={handleForgotRequestSubmit} className={styles.form}>
-                            <h1 className={styles.title}>Reset Password</h1>
-                            <p className={styles.subtitle} style={{ color: '#94a3b8', fontSize: '13px', textAlign: 'center', marginBottom: '10px' }}>Enter your registered email below to receive an OTP.</p>
+                            <h1 className={styles.title}>{t('reset_password')}</h1>
+                            <p className={styles.subtitle} style={{ color: '#94a3b8', fontSize: '13px', textAlign: 'center', marginBottom: '10px' }}>{t('otp_sent_hint')}</p>
                             {error && mode === 'login' && <div className={styles.error}>{error}</div>}
-                            <input type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} placeholder="Email" required />
+                            <input type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} placeholder={t('email')} required />
                             <button type="submit" className={styles.btnPrimary} disabled={loading}>
-                                {loading ? '⏳...' : 'Send OTP'}
+                                {loading ? '⏳...' : t('send_otp')}
                             </button>
-                            <a href="#" className={styles.forgotPass} onClick={(e) => { e.preventDefault(); setLoginState('login'); clearMessages(); }}>Back to Sign In</a>
+                            <a href="#" className={styles.forgotPass} onClick={(e) => { e.preventDefault(); setLoginState('login'); clearMessages(); }}>{t('back_to_signin')}</a>
                         </form>
                     )}
 
                     {loginState === 'forgot_confirm' && (
                         <form onSubmit={handleForgotConfirmSubmit} className={styles.form}>
-                            <h1 className={styles.title}>Enter OTP</h1>
+                            <h1 className={styles.title}>{t('enter_otp')}</h1>
                             {successMsg && mode === 'login' && <div className={styles.success}>{successMsg}</div>}
                             {error && mode === 'login' && <div className={styles.error}>{error}</div>}
-                            <input type="text" value={forgotOtp} onChange={e => setForgotOtp(e.target.value)} placeholder="6-digit OTP" required />
-                            <input type="password" value={forgotNewPassword} onChange={e => setForgotNewPassword(e.target.value)} placeholder="New Password" required />
+                            <input type="text" value={forgotOtp} onChange={e => setForgotOtp(e.target.value)} placeholder={t('otp_placeholder')} required />
+                            <input type="password" value={forgotNewPassword} onChange={e => setForgotNewPassword(e.target.value)} placeholder={t('new_password')} required />
                             <button type="submit" className={styles.btnPrimary} disabled={loading}>
-                                {loading ? '⏳...' : 'Reset Password'}
+                                {loading ? '⏳...' : t('reset_password')}
                             </button>
-                            <a href="#" className={styles.forgotPass} onClick={(e) => { e.preventDefault(); setLoginState('login'); clearMessages(); }}>Back to Sign In</a>
+                            <a href="#" className={styles.forgotPass} onClick={(e) => { e.preventDefault(); setLoginState('login'); clearMessages(); }}>{t('back_to_signin')}</a>
                         </form>
                     )}
                 </div>
@@ -175,17 +176,17 @@ export default function Auth() {
                 <div className={styles.toggleContainer}>
                     <div className={styles.toggle}>
                         <div className={`${styles.togglePanel} ${styles.toggleLeft}`}>
-                            <h1 className={styles.title}>Welcome Back!</h1>
-                            <p>Enter your personal details to use all of site features</p>
+                            <h1 className={styles.title}>{t('welcome_back')}</h1>
+                            <p>{t('auth_hint_login')}</p>
                             <button type="button" className={`${styles.btnPrimary} ${styles.hidden}`} onClick={() => toggleMode('login')}>
-                                Sign In
+                                {t('sign_in')}
                             </button>
                         </div>
                         <div className={`${styles.togglePanel} ${styles.toggleRight}`}>
-                            <h1 className={styles.title}>Hello, Friend!</h1>
-                            <p>Register with your personal details to use all of site features</p>
+                            <h1 className={styles.title}>{t('hello_friend')}</h1>
+                            <p>{t('auth_hint_register')}</p>
                             <button type="button" className={`${styles.btnPrimary} ${styles.hidden}`} onClick={() => toggleMode('register')}>
-                                Sign Up
+                                {t('sign_up')}
                             </button>
                         </div>
                     </div>
