@@ -206,12 +206,12 @@ export default function Market() {
                                     { label: t('volume'), value: Number(liveData.volume).toLocaleString() },
                                     { label: t('avg_volume'), value: liveData.avg_volume ? Number(liveData.avg_volume).toLocaleString() : '—' },
                                     { label: t('market_cap'), value: formatCurrencyCompact(liveData.market_cap) },
-                                    { label: 'P/E Ratio', value: liveData.pe_ratio ? liveData.pe_ratio.toFixed(2) : '—' },
+                                    { label: t('pe_ratio'), value: liveData.pe_ratio ? liveData.pe_ratio.toFixed(2) : '—' },
                                     { label: t('eps'), value: liveData.eps ? formatCurrency(liveData.eps) : '—' },
                                     { label: t('beta'), value: liveData.beta ? liveData.beta.toFixed(2) : '—' },
                                     { label: t('div_yield'), value: liveData.dividend_yield ? `${(liveData.dividend_yield * 100).toFixed(2)}%` : '—' },
-                                    { label: '52W High', value: liveData.fifty_two_week_high ? formatCurrency(liveData.fifty_two_week_high) : '—' },
-                                    { label: '52W Low', value: liveData.fifty_two_week_low ? formatCurrency(liveData.fifty_two_week_low) : '—' },
+                                    { label: t('high_52w'), value: liveData.fifty_two_week_high ? formatCurrency(liveData.fifty_two_week_high) : '—' },
+                                    { label: t('low_52w'), value: liveData.fifty_two_week_low ? formatCurrency(liveData.fifty_two_week_low) : '—' },
                                 ].map(({ label, value }) => (
                                     <div key={label} className={styles.statItem}>
                                         <span className={styles.statLabel}>{label}</span>
@@ -362,7 +362,7 @@ export default function Market() {
                         {/* Target Price Card */}
                         {liveData.target_mean_price && (
                             <div className={styles.card}>
-                                <div className={styles.cardHeader}><h3>🎯 {t('analyst_targets')}</h3></div>
+                                <div className={styles.cardHeader}><h3>🎯 {t('analyst_target')}</h3></div>
                                 <div className={styles.cardBody}>
                                     <div className={styles.targetGrid}>
                                         <div className={styles.targetItem}>

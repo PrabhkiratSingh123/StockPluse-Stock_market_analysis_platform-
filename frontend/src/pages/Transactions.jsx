@@ -6,10 +6,11 @@ import { useSettings } from '../context/SettingsContext';
 import styles from './Transactions.module.css';
 
 const fmt = (n) => Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fmtDate = (iso) => new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const fmtDate = (iso, locale = 'en-US') => new Date(iso).toLocaleString(locale, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 export default function Transactions() {
     const { t, formatCurrency } = useSettings();
+    const localeCode = t('locale_code') || 'en-US';
     const [txList, setTxList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -65,7 +66,7 @@ export default function Transactions() {
                                                 <td>{tx.quantity}</td>
                                                 <td>{formatCurrency(tx.price)}</td>
                                                 <td>{formatCurrency(tx.quantity * tx.price)}</td>
-                                                <td className={styles.date}>{fmtDate(tx.timestamp)}</td>
+                                                <td className={styles.date}>{fmtDate(tx.timestamp, localeCode)}</td>
                                             </tr>
                                         ))}
                                     </tbody>

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../api/axios';
+import { useSettings } from '../context/SettingsContext';
 import styles from './Profile.module.css';
 
 export default function Profile() {
+    const { t } = useSettings();
     const [profile, setProfile] = useState({
         full_name: '',
         address: '',
@@ -38,32 +40,32 @@ export default function Profile() {
 
         try {
             await api.patch('/users/profile/', data);
-            setMsg('✅ Profile updated successfully!');
+            setMsg(t('profile_saved'));
             setTimeout(() => setMsg(''), 4000);
         } catch (err) {
             const errorMsg = err.response?.data ?
                 Object.values(err.response.data).flat().join(' ') :
                 'Network error. Please ensure the backend is running.';
-            setMsg(`❌ Error: ${errorMsg}`);
+            setMsg(`❌ ${t('error_label')}: ${errorMsg}`);
         }
         setSaving(false);
     };
 
-    if (loading) return <Layout><div className={styles.loader}>Loading Profile...</div></Layout>;
+    if (loading) return <Layout><div className={styles.loader}>{t('loading')}...</div></Layout>;
 
     return (
-        <Layout pageTitle="Customer Profile">
+        <Layout pageTitle={t('customer_details')}>
             <div className={styles.container}>
                 <div className={styles.card}>
                     <div className={styles.header}>
-                        <h2>📝 Customer Details</h2>
-                        <p>Complete your profile to unlock full trading limits.</p>
+                        <h2>{t('customer_details')}</h2>
+                        <p>{t('customer_hint')}</p>
                     </div>
 
                     <form className={styles.form} onSubmit={handleSave}>
                         <div className={styles.grid}>
                             <div className={styles.inputGroup}>
-                                <label>Full Legal Name</label>
+                                <label>{t('full_name')}</label>
                                 <input
                                     type="text"
                                     value={profile.full_name}
@@ -72,7 +74,7 @@ export default function Profile() {
                                 />
                             </div>
                             <div className={styles.inputGroup}>
-                                <label>Age (Limit: 18+ for trading)</label>
+                                <label>{t('age_limit_hint')}</label>
                                 <input
                                     type="number"
                                     value={profile.age}
@@ -82,7 +84,7 @@ export default function Profile() {
                                 />
                             </div>
                             <div className={styles.inputGroup}>
-                                <label>Nationality</label>
+                                <label>{t('nationality')}</label>
                                 <input
                                     type="text"
                                     value={profile.nationality}
@@ -91,7 +93,7 @@ export default function Profile() {
                                 />
                             </div>
                             <div className={styles.inputGroup}>
-                                <label>Phone Number</label>
+                                <label>{t('phone')}</label>
                                 <input
                                     type="text"
                                     value={profile.phone_number}
@@ -102,7 +104,7 @@ export default function Profile() {
                         </div>
 
                         <div className={styles.inputGroup}>
-                            <label>Residential Address</label>
+                            <label>{t('address')}</label>
                             <textarea
                                 value={profile.address}
                                 onChange={e => setProfile({ ...profile, address: e.target.value })}
@@ -116,13 +118,13 @@ export default function Profile() {
                         <div className={styles.footer}>
                             <div className={styles.kycStatus}>
                                 {profile.is_kyc_verified ? (
-                                    <span className={styles.verified}>✅ KYC Verified</span>
+                                    <span className={styles.verified}>{t('kyc_verified')}</span>
                                 ) : (
-                                    <span className={styles.pending}>⚠️ KYC Verification Pending</span>
+                                    <span className={styles.pending}>{t('kyc_pending')}</span>
                                 )}
                             </div>
                             <button type="submit" className={styles.saveBtn} disabled={saving}>
-                                {saving ? 'Saving...' : 'Save Changes'}
+                                {saving ? t('saving') : t('save_changes')}
                             </button>
                         </div>
                     </form>

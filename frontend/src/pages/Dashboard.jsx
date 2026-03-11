@@ -71,10 +71,11 @@ export default function Dashboard() {
     const xLabelFormatter = (val) => {
         if (!val) return '';
         const d = new Date(val);
+        const locale = t('locale_code') || 'en-US';
         if (perfPeriod === '1D' || perfPeriod === '1W') {
-            return d.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            return d.toLocaleString(locale, { hour: '2-digit', minute: '2-digit', hour12: true });
         }
-        return d.toLocaleString('en-US', { month: 'short', day: 'numeric' });
+        return d.toLocaleString(locale, { month: 'short', day: 'numeric' });
     };
 
     const areaChartOptions = {
@@ -158,10 +159,11 @@ export default function Dashboard() {
                 show: true,
                 formatter: (v) => {
                     const d = new Date(v);
+                    const locale = t('locale_code') || 'en-US';
                     if (perfPeriod === '1D' || perfPeriod === '1W') {
-                        return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                        return d.toLocaleString(locale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                     }
-                    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    return d.toLocaleString(locale, { month: 'short', day: 'numeric', year: 'numeric' });
                 }
             },
             y: {
@@ -174,7 +176,7 @@ export default function Dashboard() {
     };
 
     const areaChartSeries = [{
-        name: 'Portfolio Value',
+        name: t('portfolio_value_label'),
         data: perfData.values,
     }];
 
@@ -248,7 +250,7 @@ export default function Dashboard() {
     // Fear & Greed mock (based on average RSI logic)
     const avgPl = summary ? summary.total_p_l_pct : 0;
     const fearGreedAngle = Math.max(-90, Math.min(90, avgPl * 3));
-    const fearGreedLabel = avgPl > 5 ? 'GREEDY' : avgPl > 0 ? 'NEUTRAL' : avgPl > -5 ? 'CAUTIOUS' : 'FEARFUL';
+    const fearGreedLabel = avgPl > 5 ? t('greedy') : avgPl > 0 ? t('neutral_label') : avgPl > -5 ? t('cautious') : t('fearful');
 
     return (
         <Layout pageTitle={t('nav_dashboard')}>

@@ -16,13 +16,14 @@ const ANALYST_FIRMS = [
     { name: 'JPMorgan Chase', tier: 'Tier 1' },
 ];
 
-const RECOMMEND_META = {
-    'strong_buy': { label: 'Strong Buy', color: '#10b981', bg: 'rgba(16,185,129,0.12)', bar: 95 },
-    'buy': { label: 'Buy', color: '#34d399', bg: 'rgba(52,211,153,0.12)', bar: 75 },
-    'hold': { label: 'Hold', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', bar: 50 },
-    'underperform': { label: 'Underperform', color: '#f97316', bg: 'rgba(249,115,22,0.12)', bar: 30 },
-    'sell': { label: 'Sell', color: '#ef4444', bg: 'rgba(239,68,68,0.12)', bar: 10 },
-};
+// ── RECOMMENDED LABELS ──────────────────────────────────────────────────
+const getRecMeta = (t) => ({
+    'strong_buy': { label: t('strong_buy'), color: '#10b981', bg: 'rgba(16,185,129,0.12)', bar: 95 },
+    'buy': { label: t('buy_rec'), color: '#34d399', bg: 'rgba(52,211,153,0.12)', bar: 75 },
+    'hold': { label: t('hold_rec'), color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', bar: 50 },
+    'underperform': { label: t('underperform'), color: '#f97316', bg: 'rgba(249,115,22,0.12)', bar: 30 },
+    'sell': { label: t('sell_rec'), color: '#ef4444', bg: 'rgba(239,68,68,0.12)', bar: 10 },
+});
 
 // ── Tiny SVG Sparkline ───────────────────────────────────────────────────────
 function MiniSpark({ up }) {
@@ -65,13 +66,13 @@ function MetricPill({ label, value, sub, highlight }) {
 
 // ── News Item ────────────────────────────────────────────────────────────────
 function NewsItem({ item }) {
+    const { t } = useSettings();
     const ts = item.providerPublishTime
         ? (() => {
             const now = Date.now() / 1000;
             const diff = now - item.providerPublishTime;
-            // Note: Keeping time strings short as requested in previous patterns, but translated
-            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+            if (diff < 3600) return t('m_ago', { n: Math.floor(diff / 60) });
+            if (diff < 86400) return t('h_ago', { n: Math.floor(diff / 3600) });
             return new Date(item.providerPublishTime * 1000).toLocaleDateString([], { month: 'short', day: 'numeric' });
         })()
         : '';
@@ -105,6 +106,7 @@ function NewsItem({ item }) {
 // ── Expert Analyst Card ──────────────────────────────────────────────────────
 function ExpertCard({ firm, targetLow, targetHigh, targetMean, recKey, analysts, formatCurrency }) {
     const { t } = useSettings();
+    const RECOMMEND_META = getRecMeta(t);
     const rec = RECOMMEND_META[recKey] || RECOMMEND_META['hold'];
     const priceDelta = targetMean ? formatCurrency(targetMean) : 'N/A';
 
@@ -244,6 +246,7 @@ export default function Watchlist() {
     // Merge news: dedicated news endpoint takes priority, fall back to live data news
     const activeNews = newsMap[selectedSymbol] || activeData?.news || [];
 
+    const RECOMMEND_META = getRecMeta(t);
     const rec = activeData?.recommendation ? RECOMMEND_META[activeData.recommendation] : RECOMMEND_META['hold'];
     const bioBullets = parseBio(activeData?.summary);
 
@@ -416,7 +419,7 @@ export default function Watchlist() {
                                 <div className={styles.ribbonTopLine} />
                                 <MetricPill label={t('market_cap')} value={formatCurrencyCompact(activeData.market_cap)} />
                                 <div className={styles.ribbonDivider} />
-                                <MetricPill label="P/E Ratio" value={activeData.pe_ratio ? `${Number(activeData.pe_ratio).toFixed(1)}×` : 'N/A'} />
+                                <MetricPill label={t('pe_ratio')} value={activeData.pe_ratio ? `${Number(activeData.pe_ratio).toFixed(1)}×` : 'N/A'} />
                                 <div className={styles.ribbonDivider} />
                                 <MetricPill
                                     label={t('target_12mo')}
@@ -495,19 +498,19 @@ export default function Watchlist() {
                                                 <div className={styles.bioStats}>
                                                     {activeData.sector && (
                                                         <div className={styles.bioStat}>
-                                                            <span className={styles.bioStatLabel}>Sector</span>
+                                                            <span className={styles.bioStatLabel}>{t('sector')}</span>
                                                             <span className={styles.bioStatValue}>{activeData.sector}</span>
                                                         </div>
                                                     )}
                                                     {activeData.industry && (
                                                         <div className={styles.bioStat}>
-                                                            <span className={styles.bioStatLabel}>Industry</span>
+                                                            <span className={styles.bioStatLabel}>{t('industry')}</span>
                                                             <span className={styles.bioStatValue}>{activeData.industry}</span>
                                                         </div>
                                                     )}
                                                     {activeData.beta && (
                                                         <div className={styles.bioStat}>
-                                                            <span className={styles.bioStatLabel}>Beta (5Y)</span>
+                                                            <span className={styles.bioStatLabel}>{t('beta')} (5Y)</span>
                                                             <span className={styles.bioStatValue}>{Number(activeData.beta).toFixed(2)}</span>
                                                         </div>
                                                     )}

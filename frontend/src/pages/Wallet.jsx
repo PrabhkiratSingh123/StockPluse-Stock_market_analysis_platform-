@@ -107,11 +107,11 @@ export default function Wallet() {
         try {
             let details = pmDetails;
             if (pmType === 'BANK') {
-                details = `Acc: ****${pmDetails.slice(-4)} | ${pmAccountName}`;
+                details = `${t('account_short')}: ****${pmDetails.slice(-4)} | ${pmAccountName}`;
             } else if (pmType === 'UPI') {
-                details = pmDetails; // e.g. name@upi
+                details = pmDetails;
             }
-            const label = pmLabel || (pmAccountName ? `${pmAccountName}'s ${pmType}` : pmType);
+            const label = pmLabel || (pmAccountName ? t('user_method_label', { name: pmAccountName, type: pmType }) : pmType);
             await api.post('/users/payment-methods/', {
                 method_type: pmType,
                 label,
@@ -401,7 +401,7 @@ export default function Wallet() {
                                     <label>{t('account_holder')}</label>
                                     <input
                                         type="text"
-                                        placeholder="e.g. Prabhkirat Singh"
+                                        placeholder={t('full_name')}
                                         value={pmAccountName}
                                         onChange={e => setPmAccountName(e.target.value)}
                                         required
@@ -423,7 +423,7 @@ export default function Wallet() {
                                         <label>{t('upi_id')}</label>
                                         <input
                                             type="text"
-                                            placeholder="e.g. name@okicici or 9876543210@upi"
+                                            placeholder="name@upi"
                                             value={pmDetails}
                                             onChange={e => setPmDetails(e.target.value)}
                                             required
@@ -437,7 +437,7 @@ export default function Wallet() {
                                             <label>{t('bank_account_no')}</label>
                                             <input
                                                 type="text"
-                                                placeholder="e.g. 1234567890"
+                                                placeholder="1234567890"
                                                 value={pmDetails}
                                                 onChange={e => setPmDetails(e.target.value)}
                                                 required

@@ -65,7 +65,7 @@ export default function Portfolio() {
     const placeOrder = async () => {
         setOrderErr(''); setOrderMsg('');
         if (!orderSymbol || !orderQty || Number(orderQty) <= 0) {
-            setOrderErr('Enter valid symbol and quantity.');
+            setOrderErr(t('invalid_order_input'));
             return;
         }
         setOrderLoading(true);
@@ -409,7 +409,7 @@ export default function Portfolio() {
                             <div className={styles.formGroup}>
                                 <label>{t('symbol_upper')}</label>
                                 <input className={styles.input} value={orderSymbol}
-                                    onChange={e => setOrderSymbol(e.target.value)} placeholder="e.g. TSLA" />
+                                    onChange={e => setOrderSymbol(e.target.value)} placeholder="e.g. AAPL" />
                             </div>
                             <div className={styles.formGroup}>
                                 <label>{t('qty_upper')}</label>
@@ -472,7 +472,7 @@ export default function Portfolio() {
                             {allocation.length > 0 ? (
                                 <Chart options={donutOptions} series={allocation.map(a => a.value)} type="donut" height={230} width={280} />
                             ) : (
-                                <div className={styles.emptyChart}><p>No data</p></div>
+                                <div className={styles.emptyChart}><p>{t('no_data_chart')}</p></div>
                             )}
                         </div>
                     </div>
