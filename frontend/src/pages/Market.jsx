@@ -1,8 +1,16 @@
+import { useState, useEffect } from 'react';
+import Layout from '../components/Layout';
+import api from '../api/axios';
 import { useSettings } from '../context/SettingsContext';
-
+import { useTour } from '../context/TourContext';
+import Chart from 'react-apexcharts';
+import styles from './Market.module.css';
 export default function Market() {
     const { t, formatCurrency, formatCurrencyCompact, currentCurrency, currency } = useSettings();
     const [liveSymbol, setLiveSymbol] = useState('');
+    const [liveData, setLiveData] = useState(null);
+    const [liveLoading, setLiveLoading] = useState(false);
+    const [liveErr, setLiveErr] = useState('');
 
     // Chart data
     const [chartData, setChartData] = useState(null);
@@ -29,6 +37,7 @@ export default function Market() {
     const [predLoading, setPredLoading] = useState(false);
 
     // Call markPageReady on load
+    const { markPageReady } = useTour();
     useEffect(() => { markPageReady(); }, [markPageReady]);
 
     const fetchLive = async () => {

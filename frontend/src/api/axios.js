@@ -14,29 +14,65 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
+};
+
 // On 401, try to refresh token
 api.interceptors.response.use(
-    (res) => res,
+    (response) => response,
     async (error) => {
         const originalRequest = error.config;
 
         // Do not intercept if the request is an authentication endpoint
-        if (originalRequest.url === '/api/token/' || originalRequest.url === '/api/token/refresh/') {
+        if (originalRequest.url === '/api/token/' || originalRequest.url === '/api/token/refresh/' || !originalRequest) {
             return Promise.reject(error);
         }
 
         if (error.response?.status === 401 && !originalRequest._retry) {
+            if (isRefreshing) {
+                return new Promise(function(resolve, reject) {
+                    failedQueue.push({ resolve, reject });
+                }).then(token => {
+                    originalRequest.headers['Authorization'] = 'Bearer ' + token;
+                    originalRequest._retry = true;
+                    return api(originalRequest);
+                }).catch(err => {
+                    return Promise.reject(err);
+                });
+            }
+
             originalRequest._retry = true;
+            isRefreshing = true;
+
             try {
                 const refresh = localStorage.getItem('sp_refresh');
                 if (!refresh) throw new Error("No refresh token");
 
                 const { data } = await axios.post('/api/token/refresh/', { refresh });
-                localStorage.setItem('sp_access', data.access);
-                api.defaults.headers.common['Authorization'] = `Bearer ${data.access}`;
-                originalRequest.headers['Authorization'] = `Bearer ${data.access}`;
+                const token = data.access;
+                localStorage.setItem('sp_access', token);
+                
+                api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                originalRequest.headers['Authorization'] = `Bearer ${token}`;
+                
+                processQueue(null, token);
+                isRefreshing = false;
+                
                 return api(originalRequest);
             } catch (err) {
+                processQueue(err, null);
+                isRefreshing = false;
                 localStorage.clear();
                 window.location.href = '/';
                 return Promise.reject(err);

@@ -27,6 +27,7 @@ export default function Auth() {
 
     const { login, register } = useAuth();
     const navigate = useNavigate();
+    const { t } = useSettings();
 
     const clearMessages = () => { setError(''); setSuccessMsg(''); };
 

@@ -133,6 +133,16 @@ function ExpertCard({ firm, targetLow, targetHigh, targetMean, recKey, analysts,
 export default function Watchlist() {
     const { t, formatCurrency, formatCurrencyCompact } = useSettings();
     const [items, setItems] = useState([]);
+    const [selectedSymbol, setSelectedSymbol] = useState(null);
+    const [liveMap, setLiveMap] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [symbol, setSymbol] = useState('');
+    const [newsMap, setNewsMap] = useState({});
+    const [newsLoading, setNewsLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState('bio');
+
+    const { markPageReady } = useTour();
 
     // Ref so `load` can read selectedSymbol without it being a dep (prevents infinite loop)
     const selectedSymbolRef = useRef(null);

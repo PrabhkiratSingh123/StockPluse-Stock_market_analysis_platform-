@@ -148,13 +148,16 @@ class PortfolioViewSet(viewsets.ModelViewSet):
 
         try:
             # Download all at once for efficiency
-            raw = yf.download(
-                symbols if len(symbols) > 1 else symbols[0],
-                period=yf_period,
-                interval=interval,
-                progress=False,
-                auto_adjust=True,
-            )
+            kwargs = {
+                'period': yf_period,
+                'interval': interval,
+                'progress': False,
+            }
+            # For newer yfinance, auto_adjust might not be supported. Use kwargs.
+            try:
+                raw = yf.download(symbols if len(symbols) > 1 else symbols[0], threads=False, auto_adjust=True, **kwargs)
+            except TypeError:
+                raw = yf.download(symbols if len(symbols) > 1 else symbols[0], threads=False, **kwargs)
 
             if raw.empty:
                 return Response({'labels': [], 'values': []})
@@ -209,8 +212,22 @@ class PortfolioViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def analytics(self, request):
+        holdings = list(self.get_queryset().filter(quantity__gt=0))
+        
+        if not holdings:
+            return Response({
+                "summary": {
+                    "total_investment": 0,
+                    "total_current_value": 0,
+                    "total_p_l": 0,
+                    "total_p_l_pct": 0,
+                    "stock_count": 0
+                },
+                "holdings": [],
+                "allocation": [],
+            })
+
         from concurrent.futures import ThreadPoolExecutor, as_completed
-        holdings = list(self.get_queryset())
         total_investment = 0
         total_current_value = 0
         stock_details = []

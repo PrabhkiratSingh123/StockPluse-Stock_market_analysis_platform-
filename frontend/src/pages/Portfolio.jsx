@@ -1,8 +1,20 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import Layout from '../components/Layout';
+import api from '../api/axios';
 import { useSettings } from '../context/SettingsContext';
+import { useTour } from '../context/TourContext';
+import Chart from 'react-apexcharts';
+import StockLogo from '../components/StockLogo';
+import styles from './Portfolio.module.css';
 
 export default function Portfolio() {
     const { t, formatCurrency, formatCurrencyCompact, currency } = useSettings();
     const [holdings, setHoldings] = useState([]);
+    const [summary, setSummary] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [allocation, setAllocation] = useState([]);
+
+    const { markPageReady } = useTour();
 
     // Chart data for selected stock
     const [selectedSymbol, setSelectedSymbol] = useState('');
