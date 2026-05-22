@@ -190,3 +190,4 @@ zipp==3.21.0
 
 whitenoise
 gunicorn
+django-environ
