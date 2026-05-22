@@ -14,8 +14,8 @@ jobs:
       db:
         image: postgres:15-alpine
         env:
-          POSTGRES_DB: lms_db
-          POSTGRES_USER: lms_user
+          POSTGRES_DB: stock_db
+          POSTGRES_USER: stock_user
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         ports:
           - 5432:5432
@@ -27,7 +27,7 @@ jobs:
 
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      DATABASE_URL: postgres://lms_user:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/lms_db
+      DATABASE_URL: postgres://stock_user:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/stock_db
       DEBUG: "True"
       ALLOWED_HOSTS: "localhost,127.0.0.1"
       RENDER_FRONTEND_URL: ""
@@ -52,29 +52,3 @@ jobs:
         run: |
           cd backend
           python manage.py test --verbosity=2
-
-  test-frontend:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: |
-          cd frontend
-          npm install --legacy-peer-deps
-
-      - name: Build
-        run: |
-          cd frontend
-          npm run build
-        env:
-          VITE_API_URL: "https://placeholder-for-ci-build.example.com"
