@@ -16,18 +16,18 @@ jobs:
         env:
           POSTGRES_DB: stock_db
           POSTGRES_USER: stock_user
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: testpassword
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
+          --health-cmd "pg_isready -U stock_user -d stock_db"
+          --health-interval 10s
           --health-timeout 5s
-          --health-retries 3
+          --health-retries 5
 
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      DATABASE_URL: postgres://stock_user:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/stock_db
+      DATABASE_URL: postgres://stock_user:testpassword@localhost:5432/stock_db
       DEBUG: "True"
       ALLOWED_HOSTS: "localhost,127.0.0.1"
       RENDER_FRONTEND_URL: ""
