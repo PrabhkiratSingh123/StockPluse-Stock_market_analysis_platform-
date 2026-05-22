@@ -14,6 +14,11 @@ services:
         generateValue: true
       - key: ALLOWED_HOSTS
         value: "*"
+      - key: RENDER_FRONTEND_URL
+        fromService:
+          type: web
+          name: stock-frontend
+          envVarKey: RENDER_EXTERNAL_URL
 
   - type: web
     name: stock-frontend
