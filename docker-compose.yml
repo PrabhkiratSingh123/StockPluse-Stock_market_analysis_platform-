@@ -6,18 +6,19 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgres://lms_user:Test@123@db:5432/lms_db
+      - DATABASE_URL=postgres://stock_user:Test@123@db:5432/stock_db
       - SECRET_KEY=django-insecure-test-key
       - DEBUG=True
 
   frontend:
-    build: ./frontend
+    build: 
+      context: ./frontend
+      args:
+        - VITE_API_URL=http://localhost:8000
     ports:
       - "5173:80"
     depends_on:
       - backend
-    environment:
-      - VITE_API_URL=http://localhost:8000
 
   db:
     image: postgres:15-alpine
@@ -25,8 +26,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: lms_db
-      POSTGRES_USER: lms_user
+      POSTGRES_DB: stock_db
+      POSTGRES_USER: stock_user
       POSTGRES_PASSWORD: Test@123
     ports:
       - "5432:5432"
