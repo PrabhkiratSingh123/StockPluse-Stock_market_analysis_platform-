@@ -105,6 +105,9 @@ export default function Auth() {
 
     return (
         <div className={styles.authBg}>
+            <div className={styles.reminderBanner}>
+                Reminder: You need to press the backend link ( <a href="https://stock-backend-9xsz.onrender.com/" target="_blank" rel="noopener noreferrer" className={styles.backendLink}>https://stock-backend-9xsz.onrender.com/</a> ) to wake up the server.
+            </div>
             <div className={`${styles.container} ${mode === 'register' ? styles.active : ''}`}>
 
                 {/* Sign Up Form */}
