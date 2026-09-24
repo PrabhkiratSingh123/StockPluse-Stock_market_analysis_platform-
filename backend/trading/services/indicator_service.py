@@ -1,13 +1,16 @@
 class IndicatorService:
     @staticmethod
     def calculate_indicators(symbol):
-        import pandas as pd     # lazy — avoids OpenBLAS error at startup
-        import yfinance as yf
-        # Fetch 60 days of data to calculate 14-day indicators accurately
-        ticker = yf.Ticker(symbol.upper())
-        df = ticker.history(period="60d")
-        
-        if df.empty or len(df) < 20:
+        try:
+            import pandas as pd     # lazy — avoids OpenBLAS error at startup
+            import yfinance as yf
+            # Fetch 60 days of data to calculate 14-day indicators accurately
+            ticker = yf.Ticker(symbol.upper())
+            df = ticker.history(period="60d")
+            
+            if df.empty or len(df) < 20:
+                return None
+        except Exception:
             return None
 
         # SMA
