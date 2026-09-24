@@ -243,10 +243,20 @@ class MarketService:
                 return None
 
             latest = data.iloc[-1]
-            info = ticker.info or {}
-            prev_close = info.get('previousClose', float(latest['Close']))
-            change = float(latest['Close']) - prev_close
-            change_pct = (change / prev_close) * 100 if prev_close else 0
+            try:
+                info = ticker.info or {}
+            except Exception:
+                info = {}
+            
+            fast_info = getattr(ticker, 'fast_info', None)
+            prev_close = info.get('previousClose')
+            if prev_close is None and fast_info:
+                prev_close = getattr(fast_info, 'previous_close', None)
+            if prev_close is None:
+                prev_close = float(latest['Close'])
+
+            change = float(latest['Close']) - float(prev_close)
+            change_pct = (change / float(prev_close)) * 100 if prev_close else 0
 
             merged_news = []
             if fetch_news:
