@@ -3,12 +3,12 @@ class IndicatorService:
     def calculate_indicators(symbol):
         try:
             import pandas as pd     # lazy — avoids OpenBLAS error at startup
-            import yfinance as yf
+            # Use the robust session + retry helper to bypass cloud IP blocks
+            from .market_service import _fetch_history_with_retry
             # Fetch 60 days of data to calculate 14-day indicators accurately
-            ticker = yf.Ticker(symbol.upper())
-            df = ticker.history(period="60d")
-            
-            if df.empty or len(df) < 20:
+            df, ticker = _fetch_history_with_retry(symbol, period="60d", max_retries=3)
+
+            if df is None or df.empty or len(df) < 20:
                 return None
         except Exception:
             return None

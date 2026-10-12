@@ -34,8 +34,7 @@ class TradingViewSet(viewsets.ViewSet):
     def news(self, request, symbol=None):
         """Real-time news endpoint — yfinance + RSS, cached 3 min."""
         from django.core.cache import cache
-        from .services.market_service import _parse_yf_news, _fetch_rss_news
-        import yfinance as yf
+        from .services.market_service import _parse_yf_news, _fetch_rss_news, _yf_ticker
 
         symbol = (symbol or '').upper()
         if not symbol:
@@ -47,8 +46,12 @@ class TradingViewSet(viewsets.ViewSet):
             return Response({"symbol": symbol, "news": cached})
 
         try:
-            ticker = yf.Ticker(symbol)
-            yf_news = _parse_yf_news(ticker.news[:10] if ticker.news else [])
+            ticker = _yf_ticker(symbol)
+            try:
+                raw_news = ticker.news[:10] if ticker.news else []
+            except Exception:
+                raw_news = []
+            yf_news = _parse_yf_news(raw_news)
             rss_news = _fetch_rss_news(symbol, max_items=10)
 
             seen, merged = set(), []
