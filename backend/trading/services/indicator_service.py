@@ -2,14 +2,17 @@ class IndicatorService:
     @staticmethod
     def calculate_indicators(symbol):
         try:
-            import pandas as pd     # lazy — avoids OpenBLAS error at startup
-            # Use the robust session + retry helper to bypass cloud IP blocks
-            from .market_service import _fetch_history_with_retry
-            # Fetch 60 days of data to calculate 14-day indicators accurately
-            df, ticker = _fetch_history_with_retry(symbol, period="60d", max_retries=3)
-
-            if df is None or df.empty or len(df) < 20:
+            import pandas as pd   # lazy — avoids OpenBLAS error at startup
+            from .market_service import _get_history
+            # 4-source waterfall: yahoo_v8 → stooq → yfinance → fmp
+            # Fetch 90 days so 14-day & 50-day indicators have enough history
+            rows = _get_history(symbol, period="3mo", interval="1d")
+            if not rows or len(rows) < 20:
                 return None
+            # Build DataFrame from unified row format
+            df = pd.DataFrame(rows)
+            df.rename(columns={"open": "Open", "high": "High", "low": "Low",
+                                "close": "Close", "volume": "Volume"}, inplace=True)
         except Exception:
             return None
 
